@@ -1,0 +1,373 @@
+{
+  "name": "Job Agent - 03 Relevance And Resume",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ef2e9f1d-fc23-46d1-8509-50edc0544305",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1440,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
+          "mode": ""
+        },
+        "sheetName": "Jobs",
+        "options": {}
+      },
+      "id": "dc0df146-407f-4555-9916-7840ce9e08e6",
+      "name": "Read Enriched Jobs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1200,
+        80
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "1EPATbG9UgFp0Cvm",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
+          "mode": ""
+        },
+        "sheetName": "Master Resume",
+        "options": {}
+      },
+      "id": "eeaf1ddc-ebc1-4b8d-b449-a0594fa0eac0",
+      "name": "Read Master Resume",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1200,
+        288
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "1EPATbG9UgFp0Cvm",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Read Enriched Jobs').item.json;\nconst resumeRows = $('Read Master Resume').all().map(i => i.json);\nconst masterResume = resumeRows.map(r => r.content || r.text || r.section || JSON.stringify(r)).join('\\n\\n');\nreturn [{ json: {\n  ...job,\n  master_resume: masterResume.slice(0, 6000)\n} }];"
+      },
+      "id": "ff52d689-2bf9-437e-822c-70e10bc4bb9d",
+      "name": "Prepare Fit Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://testashok1.openai.azure.com/openai/deployments/Test-Ashok-1-gpt-4o/chat/completions?api-version=2024-02-01",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an expert career strategist and hiring signal analyst.\\n\\nEvaluate whether this job is relevant to the candidate based only on the provided resume evidence, job description, and company context.\\n\\nReturn strict JSON with: job_id, fit_score (0-100 integer), decision (reject|needs_review|generate_resume), rationale (string), matched_requirements (array of strings), missing_requirements (array of strings), resume_evidence (array of strings), company_signals (array of strings), risk_flags (array of strings).\\n\\nScoring guide:\\n- 90-100: excellent match\\n- 80-89: strong match, generate resume\\n- 65-79: possible match, needs human review\\n- 40-64: weak match, reject\\n- 0-39: irrelevant\\n\\nDo not inflate scores. Do not assume skills not in the resume.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"JOB ID: {{$json.job_id}}\\n\\nJOB TITLE: {{$json.title}}\\nCOMPANY: {{$json.company_name}}\\nLOCATION: {{$json.location}}\\n\\nJOB DESCRIPTION:\\n{{$json.description.slice(0, 4000)}}\\n\\nCOMPANY RESEARCH:\\n{{typeof $json.company_research === 'string' ? $json.company_research.slice(0, 2000) : JSON.stringify($json.company_research || {}).slice(0, 2000)}}\\n\\nMASTER RESUME:\\n{{$json.master_resume}}\"\n    }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"max_tokens\": 1500\n}",
+        "options": {}
+      },
+      "id": "bd53ce40-fdcf-40e3-aaa1-1448a5dc9122",
+      "name": "Azure OpenAI Fit Score",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -720,
+        80
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jjUOHftcBqLwwjjm",
+          "name": "Azure OpenAI API Key-03May26"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Prepare Fit Input').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet fit;\ntry { fit = JSON.parse(raw); } catch (e) { fit = { fit_score: 0, decision: 'needs_review', parse_error: true }; }\nreturn [{ json: { ...job, fit } }];"
+      },
+      "id": "f4c565b7-2d8a-409f-8828-6d26a9c4e926",
+      "name": "Parse Fit Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.fit.fit_score}}",
+              "operation": "largerEqual",
+              "value2": 80
+            }
+          ],
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "id": "1265e011-7119-45b1-a8a9-7735ed096f6b",
+      "name": "Score >= 80?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://testashok1.openai.azure.com/openai/deployments/Test-Ashok-1-gpt-4o/chat/completions?api-version=2024-02-01",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an expert resume writer for senior technical and process improvement roles.\\n\\nCreate a tailored resume for the target job using only truthful information from the master resume evidence.\\n\\nReturn strict JSON with: job_id, document_title, resume_html (clean semantic HTML, ATS-friendly, no images/scripts/external CSS), resume_markdown, tailoring_rationale, keywords_used (array), risks_or_gaps (array).\\n\\nRules:\\n- Do NOT fabricate employers, dates, titles, metrics, certifications, tools, or achievements\\n- Rephrase and reorder truthful experience to match the job\\n- Prioritize skills and projects relevant to the job description\\n- Use company research to tune positioning, not to invent experience\\n- Keep concise and ATS-friendly\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"JOB ID: {{$json.job_id}}\\nJOB TITLE: {{$json.title}}\\nCOMPANY: {{$json.company_name}}\\n\\nJOB DESCRIPTION:\\n{{$json.description.slice(0, 4000)}}\\n\\nCOMPANY RESEARCH:\\n{{typeof $json.company_research === 'string' ? $json.company_research.slice(0, 2000) : JSON.stringify($json.company_research || {}).slice(0, 2000)}}\\n\\nFIT ANALYSIS:\\nScore: {{$json.fit.fit_score}}\\nMatched: {{JSON.stringify($json.fit.matched_requirements || [])}}\\nMissing: {{JSON.stringify($json.fit.missing_requirements || [])}}\\n\\nMASTER RESUME:\\n{{$json.master_resume}}\"\n    }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"max_tokens\": 3000\n}",
+        "options": {}
+      },
+      "id": "ea89d57a-2ffc-466f-8a7f-5d613c9a45bb",
+      "name": "Azure OpenAI Generate Resume",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jjUOHftcBqLwwjjm",
+          "name": "Azure OpenAI API Key-03May26"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Parse Fit Score').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet resume;\ntry { resume = JSON.parse(raw); } catch (e) { resume = { parse_error: true, document_title: `Resume - ${job.title} - ${job.company_name}` }; }\nreturn [{ json: {\n  ...job,\n  resume_markdown: resume.resume_markdown || '',\n  resume_html: resume.resume_html || '',\n  tailoring_rationale: resume.tailoring_rationale || '',\n  status: 'needs_review',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
+      },
+      "id": "76d990b3-c260-4328-b3b8-8386a3fb7855",
+      "name": "Parse Resume",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $json;\nreturn [{ json: {\n  ...job,\n  status: job.fit.fit_score >= 65 ? 'needs_review' : 'rejected',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
+      },
+      "id": "05bb3c61-eadb-4c2e-9a72-517003f68eb6",
+      "name": "Score < 80 - No Resume",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
+          "mode": ""
+        },
+        "sheetName": "Jobs",
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "45bc315b-e3c4-4c9c-8c90-330967d6beae",
+      "name": "Update Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        480,
+        80
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "1EPATbG9UgFp0Cvm",
+          "name": "Google Service Account account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Enriched Jobs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Master Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Enriched Jobs": {
+      "main": [
+        [
+          {
+            "node": "Prepare Fit Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Master Resume": {
+      "main": [
+        [
+          {
+            "node": "Prepare Fit Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Fit Input": {
+      "main": [
+        [
+          {
+            "node": "Azure OpenAI Fit Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Fit Score": {
+      "main": [
+        [
+          {
+            "node": "Parse Fit Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Fit Score": {
+      "main": [
+        [
+          {
+            "node": "Score >= 80?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score >= 80?": {
+      "main": [
+        [
+          {
+            "node": "Azure OpenAI Generate Resume",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Score < 80 - No Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Generate Resume": {
+      "main": [
+        [
+          {
+            "node": "Parse Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Resume": {
+      "main": [
+        [
+          {
+            "node": "Update Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score < 80 - No Resume": {
+      "main": [
+        [
+          {
+            "node": "Update Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c4be0d49-c2b4-4ef6-8e0e-07bc99a4fd29",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
+  },
+  "id": "nDJ8doqO7iuWCccU",
+  "tags": []
+}

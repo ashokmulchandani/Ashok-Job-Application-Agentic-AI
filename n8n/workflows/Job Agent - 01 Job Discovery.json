@@ -1,0 +1,659 @@
+{
+  "name": "Job Agent - 01 Job Discovery",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "13666a01-c245-4d21-887c-60b1ea1571ab",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1920,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const searches = [\n  { keywords: 'AI-Engineer', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'AI-ML-Engineer', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Continuous-Improvement-Specialist', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Continuous-Improvement-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Process-Improvement-Analyst', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Operations-Improvement-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Operations-Improvement-Analyst', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Agentic-AI-Automation-Engineer', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'ISO-9001-Quality-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Quality-Assurance-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Quality-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Lean-Six-Sigma', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'AI-Adoption-Specialist', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'AI-Adoption-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Change-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Process-Automation-Engineer', location: 'All-Australia', site: 'seek' }\n];\nconst urls = searches.map(s => {\n  if (s.site === 'seek') {\n    return { json: { search_url: `https://www.seek.com.au/${s.keywords}-jobs/in-${s.location}`, keywords: s.keywords.replace(/-/g, ' '), location: s.location.replace(/-/g, ' '), site: s.site } };\n  }\n  return { json: { search_url: '', keywords: s.keywords, location: s.location, site: s.site } };\n});\nreturn urls;"
+      },
+      "id": "3a013c41-784c-4f62-8cfa-965d3bb92513",
+      "name": "Build Search URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1680,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{$json.search_url}}\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "7e7c2bcc-56b9-47de-9f98-f67543eed903",
+      "name": "Firecrawl Scrape Search Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1440,
+        160
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "rBgY4HYcYC151dgK",
+          "name": "Firecrawl API Key-Latest-03May26"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const markdown = $json.data?.markdown || '';\nconst searchMeta = $('Build Search URLs').item.json;\n\nfunction hashText(input) {\n  let h1 = 0xdeadbeef;\n  let h2 = 0x41c6ce57;\n  for (let i = 0; i < input.length; i++) {\n    const ch = input.charCodeAt(i);\n    h1 = Math.imul(h1 ^ ch, 2654435761);\n    h2 = Math.imul(h2 ^ ch, 1597334677);\n  }\n  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);\n  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);\n  return ((h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0'));\n}\n\nconst jobRegex = /###\\s*\\[([^\\]]+)\\]\\((https:\\/\\/au\\.seek\\.com\\/job\\/\\d+[^)]*?)\\)[\\s\\S]*?at\\[([^\\]]+)\\]\\((https?:\\/\\/[^)]+)\\)/g;\nconst jobs = [];\nconst seen = new Set();\nlet match;\nlet serialNo = 0;\n\n\nwhile ((match = jobRegex.exec(markdown)) !== null) {\n  const title = match[1].trim();\n  const jobUrl = match[2].split('?')[0].trim();\n  const company = match[3].trim();\n  const companyUrl = match[4] ? match[4].split(' ')[0].trim() : '';\n\n\n  const dedupKey = `${company}|${title}`.toLowerCase().replace(/[^a-z0-9|]/g, '');\n  const hash = hashText(dedupKey);\n\n  if (seen.has(hash)) continue;\n  seen.add(hash);\n\n  const afterMatch = markdown.substring(match.index + match[0].length, match.index + match[0].length + 800);\n\n  const locMatch = afterMatch.match(/\\[([^\\]]*(?:Sydney|NSW|Melbourne|Brisbane|Australia|Remote)[^\\]]*)\\]/i);\n  const location = locMatch ? locMatch[1].replace(/\\s*\"[^\"]*\"/g, '').trim() : searchMeta.location;\n\n  const salaryMatch = afterMatch.match(/(\\$[\\d,]+(?:\\s*[–\\-]\\s*\\$[\\d,]+)?(?:\\s*(?:per|p\\.?a|k|K|per year|per annum|per hour))?[^\\n]*)/i);\n  const salary = salaryMatch ? salaryMatch[1].trim() : '';\n\n  const remoteMatch = afterMatch.match(/\\((Hybrid|Remote|On-?site)\\)/i);\n  const remotePolicy = remoteMatch ? remoteMatch[1].toLowerCase() : 'unknown';\n\n  const contractMatch = afterMatch.match(/This is a (Full time|Contract\\/Temp|Part time|Casual) job/i);\n  const contractType = contractMatch ? contractMatch[1].toLowerCase() : '';\n\n  const descLines = afterMatch.split('\\n').filter(l => {\n    const t = l.trim();\n    return t && t.length > 10 && !t.includes('subClassification') && !t.includes('classification:') && !t.match(/^\\d+[dh] ago/) && !t.includes('Limit results') && !t.includes('Jobs at') && !t.startsWith('at[') && !t.startsWith('Recruited by') && !t.startsWith('![');\n  });\n  const description = descLines.slice(0, 3).map(l => l.replace(/^-\\s*/, '').trim()).filter(Boolean).join(' | ');\n\n  serialNo++;\njobs.push({\n    json: {\n      serial_no: serialNo,\n      job_id: `job_${hash.slice(0, 12)}`,\n      job_url_hash: hash,\n      job_url: jobUrl,\n      title,\n      company_name: company,\n      company_url: companyUrl,\n      company_website: '',\n      location,\n      remote_policy: remotePolicy,\n      salary,\n      contract_type: contractType,\n      posted_at: '',\n      apply_url: jobUrl,\n      description,\n      source: `seek_${searchMeta.keywords}`,\n      search_keywords: searchMeta.keywords,\n      status: 'discovered',\n      fit_score: '',\n      fit_decision: '',\n      fit_rationale: '',\n      matched_requirements: '',\n      missing_requirements: '',\n      company_summary: '',\n      resume_doc_url: '',\n      job_pdf_url: '',\n      review_notes: '',\n      applied_at: '',\n      created_at: new Date().toISOString(),\n      updated_at: new Date().toISOString(),\n      error: ''\n    }\n  });\n}\n\nif (jobs.length === 0) {\n  return [{ json: { _empty: true, search_url: searchMeta.search_url, message: 'No jobs extracted from markdown' } }];\n}\nreturn jobs;\n"
+      },
+      "id": "318a6323-bed1-4917-89bf-58e414eee255",
+      "name": "Extract Jobs From Markdown",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json._empty}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notTrue",
+                "singleValue": true
+              },
+              "id": "filter-empty"
+            },
+            {
+              "id": "9977b49d-213a-4692-b8b8-d2b9184b0989",
+              "leftValue": "={{$json.job_id}}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9d0f6efb-60a4-44dd-bede-3ac3abf39841",
+      "name": "Filter Empty Results",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -944,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
+          "mode": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Jobs",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "62946cf1-5460-4feb-9106-f9969633e0dc",
+      "name": "Read Existing Jobs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -720,
+        80
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": {
+          "id": "1EPATbG9UgFp0Cvm",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const newJobs = $('Filter Empty Results').all().map(i => i.json);\nconst existingJobs = $('Read Existing Jobs').all().map(i => i.json);\nconst existingHashes = new Set(existingJobs.map(j => j.job_url_hash).filter(Boolean));\nconst existingUrls = new Set(existingJobs.map(j => j.job_url).filter(Boolean));\n\nconst deduped = newJobs.filter(job => {\n  if (existingHashes.has(job.job_url_hash)) return false;\n  if (existingUrls.has(job.job_url)) return false;\n  return true;\n});\n\nif (deduped.length === 0) {\n  return [{ json: { _no_new_jobs: true, message: `All ${newJobs.length} jobs already exist in sheet` } }];\n}\nreturn deduped.map(j => ({ json: j }));"
+      },
+      "id": "e3eebd44-01ea-4d98-b3d3-be7976de6a1c",
+      "name": "Deduplicate Against Sheet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json._no_new_jobs}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notTrue",
+                "singleValue": true
+              },
+              "id": "filter-no-new"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a4ab3dc9-1296-4a98-ab4f-b7025ea7b7a1",
+      "name": "Has New Jobs?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
+          "mode": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Jobs",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "job_id",
+              "displayName": "job_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_url_hash",
+              "displayName": "job_url_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_url",
+              "displayName": "job_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_url",
+              "displayName": "company_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_website",
+              "displayName": "company_website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "remote_policy",
+              "displayName": "remote_policy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salary",
+              "displayName": "salary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contract_type",
+              "displayName": "contract_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "posted_at",
+              "displayName": "posted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apply_url",
+              "displayName": "apply_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "search_keywords",
+              "displayName": "search_keywords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_score",
+              "displayName": "fit_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_decision",
+              "displayName": "fit_decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_rationale",
+              "displayName": "fit_rationale",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "matched_requirements",
+              "displayName": "matched_requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "missing_requirements",
+              "displayName": "missing_requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_summary",
+              "displayName": "company_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_research",
+              "displayName": "company_research",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_markdown",
+              "displayName": "resume_markdown",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_html",
+              "displayName": "resume_html",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_doc_url",
+              "displayName": "resume_doc_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_pdf_url",
+              "displayName": "job_pdf_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "applied_at",
+              "displayName": "applied_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error",
+              "displayName": "error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a4d97cd7-5d28-4fbe-81fb-504028cdc562",
+      "name": "Append New Jobs to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "1EPATbG9UgFp0Cvm",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const jobs = $('Has New Jobs?').all().map(i => i.json);\nreturn [{ json: { summary: `Discovered ${jobs.length} new jobs`, timestamp: new Date().toISOString() } }];"
+      },
+      "id": "9cfbc296-24fb-45bf-851f-5ec64d00e756",
+      "name": "Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build Search URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Search URLs": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl Scrape Search Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl Scrape Search Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Jobs From Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Jobs From Markdown": {
+      "main": [
+        [
+          {
+            "node": "Filter Empty Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Empty Results": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Read Existing Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Existing Jobs": {
+      "main": [
+        [
+          {
+            "node": "Deduplicate Against Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplicate Against Sheet": {
+      "main": [
+        [
+          {
+            "node": "Has New Jobs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has New Jobs?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Append New Jobs to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append New Jobs to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1a426a75-7003-4f47-809b-fca1a0e54b05",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
+  },
+  "id": "Mg50PmDYnfhIIDov",
+  "tags": []
+}

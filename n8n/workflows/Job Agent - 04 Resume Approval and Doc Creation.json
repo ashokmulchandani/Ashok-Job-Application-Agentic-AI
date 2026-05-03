@@ -1,0 +1,281 @@
+{
+  "name": "Job Agent - 04 Resume Approval and Doc Creation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "0d9a9a47-83f5-4ccc-ac98-f1469e2fa26b",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
+          "mode": ""
+        },
+        "sheetName": "Jobs",
+        "options": {}
+      },
+      "id": "d8fd4b89-756b-4357-95fb-77102f7fa979",
+      "name": "Read Approved Jobs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -480,
+        80
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "1EPATbG9UgFp0Cvm",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.review_notes}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "has-notes"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e6882b85-4a65-4fa0-beaf-f2471e4a854b",
+      "name": "Has Review Notes?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://testashok1.openai.azure.com/openai/deployments/Test-Ashok-1-gpt-4o/chat/completions?api-version=2024-02-01",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an expert resume writer. Revise the resume based on the reviewer's feedback. Return JSON with: resume_html, resume_markdown, tailoring_rationale. Do NOT fabricate experience.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"CURRENT RESUME:\\n{{$json.resume_markdown}}\\n\\nREVIEW NOTES:\\n{{$json.review_notes}}\\n\\nJOB TITLE: {{$json.title}}\\nCOMPANY: {{$json.company_name}}\"\n    }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"max_tokens\": 3000\n}",
+        "options": {}
+      },
+      "id": "d178d64d-4a6a-42f4-a7af-c24f15f60ef0",
+      "name": "Azure OpenAI Revise Resume",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jjUOHftcBqLwwjjm",
+          "name": "Azure OpenAI API Key-03May26"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Has Review Notes?').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet revised;\ntry { revised = JSON.parse(raw); } catch (e) { revised = {}; }\nreturn [{ json: {\n  ...job,\n  resume_markdown: revised.resume_markdown || job.resume_markdown,\n  resume_html: revised.resume_html || job.resume_html\n} }];"
+      },
+      "id": "141388f4-f230-4912-8e1d-91f1f2339276",
+      "name": "Parse Revised Resume",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "folderId": "=1HLHfN_hRD0e2RM3oH4iXkyrcrhby3dQB",
+        "title": "==Ashok_Mulchandani_{{$json.search_keywords ? $json.search_keywords.replace(/[^a-zA-Z0-9]/g, '_') : $json.title.replace(/[^a-zA-Z0-9]/g, '_')}}_{{new Date().toLocaleDateString('en-AU', {day:'2-digit',month:'short',year:'2-digit'}).replace(/ /g,'_')}}_resume_{{$json.company_name.replace(/[^a-zA-Z0-9]/g, '_')}}_{{$json.title.replace(/[^a-zA-Z0-9]/g, '_')}}_{{$json.location ? $json.location.replace(/[^a-zA-Z0-9]/g, '_') : 'Sydney'}}\n"
+      },
+      "id": "74bf67d0-1794-4758-830a-c7f1444054a2",
+      "name": "Create Google Doc",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        480,
+        80
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "msPQz7kGnIy6N8EF",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Has Review Notes?').item.json || $('Parse Revised Resume').item.json;\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  status: 'resume_generated',\n  resume_doc_url: $json.documentUrl || $json.url || '',\n  updated_at: new Date().toISOString()\n} }];"
+      },
+      "id": "b165cb04-b783-4331-818f-ae63dd2c6416",
+      "name": "Prepare Sheet Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
+          "mode": ""
+        },
+        "sheetName": "Jobs",
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c7a1545f-2ed0-47e8-a660-8e1ab4b908e3",
+      "name": "Update Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        960,
+        80
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "1EPATbG9UgFp0Cvm",
+          "name": "Google Service Account account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Approved Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Approved Jobs": {
+      "main": [
+        [
+          {
+            "node": "Has Review Notes?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Review Notes?": {
+      "main": [
+        [
+          {
+            "node": "Azure OpenAI Revise Resume",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Google Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Revise Resume": {
+      "main": [
+        [
+          {
+            "node": "Parse Revised Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Revised Resume": {
+      "main": [
+        [
+          {
+            "node": "Create Google Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Google Doc": {
+      "main": [
+        [
+          {
+            "node": "Prepare Sheet Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Sheet Update": {
+      "main": [
+        [
+          {
+            "node": "Update Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d0e412e3-062d-46d8-8974-d356e94c7786",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
+  },
+  "id": "RrCii1riFxkotyCb",
+  "tags": []
+}

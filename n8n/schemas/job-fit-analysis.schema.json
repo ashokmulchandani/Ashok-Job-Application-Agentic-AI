@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "JobFitAnalysis",
+  "type": "object",
+  "required": [
+    "job_id",
+    "fit_score",
+    "decision",
+    "rationale",
+    "matched_requirements",
+    "missing_requirements",
+    "resume_evidence",
+    "company_signals",
+    "risk_flags"
+  ],
+  "properties": {
+    "job_id": { "type": "string" },
+    "fit_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["reject", "needs_review", "generate_resume"]
+    },
+    "rationale": { "type": "string" },
+    "matched_requirements": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "missing_requirements": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "resume_evidence": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "company_signals": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "risk_flags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}
+

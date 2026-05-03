@@ -1,0 +1,572 @@
+{
+  "name": "Job Agent - 02 Company Enrichment",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "815895da-d989-4522-86e6-0d2e261167be",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1440,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
+          "mode": ""
+        },
+        "sheetName": "Jobs",
+        "options": {}
+      },
+      "id": "54551acf-3167-4272-9b4d-7e0aa861a497",
+      "name": "Read Discovered Jobs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1200,
+        80
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "1EPATbG9UgFp0Cvm",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $json;\nreturn [{ json: { ...job, scrape_url: job.job_url || '' } }];"
+      },
+      "id": "ec5e94a4-1d12-4d32-a769-c86632db9d7a",
+      "name": "Prepare Job Scrape",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{$json.scrape_url}}\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "9a33f44b-5676-4d64-a8a4-2fda3f1c4b07",
+      "name": "Firecrawl Scrape Job Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -720,
+        80
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "rBgY4HYcYC151dgK",
+          "name": "Firecrawl API Key-Latest-03May26"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{$('Prepare Job Scrape').item.json.scrape_url}}\",\n  \"formats\": [\"screenshot@fullPage\"]\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "c462d1d2-06e9-4e10-a218-8d731bb8f9c0",
+      "name": "Firecrawl Screenshot Job Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -720,
+        304
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "rBgY4HYcYC151dgK",
+          "name": "Firecrawl API Key-Latest-03May26"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Prepare Job Scrape').item.json;\nconst scrapeResult = $('Firecrawl Scrape Job Page').item.json;\nconst fullDescription = scrapeResult.data?.markdown || job.description || '';\n\nconst urlMatch = fullDescription.match(/(?:https?:\\/\\/)?(?:www\\.)?([a-zA-Z0-9-]+\\.(?:com|com\\.au|io|co|org|net|ai))/i);\nconst companyWebsite = urlMatch ? `https://www.${urlMatch[1]}` : '';\n\n// Get screenshot base64 if available\nconst screenshotResult = $('Firecrawl Screenshot Job Page').item.json;\nconst screenshotBase64 = screenshotResult.data?.screenshot || '';\n\nreturn [{ json: {\n  ...job,\n  description: fullDescription.slice(0, 10000),\n  company_website: companyWebsite || job.company_website || '',\n  screenshot_base64: screenshotBase64,\n  status: 'enrichment_pending'\n} }];"
+      },
+      "id": "faa69b0d-5739-4077-b31f-bb5ddfbf1b64",
+      "name": "Extract Full Description",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.screenshot_base64}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "has-screenshot"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9e8f7a2e-1bbc-4ac3-b45c-d235df489620",
+      "name": "Has Screenshot?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $json;\nconst base64 = job.screenshot_base64;\n\n// Build filename matching naming convention\nconst now = new Date();\nconst day = String(now.getDate()).padStart(2, '0');\nconst months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\nconst mon = months[now.getMonth()];\nconst yr = String(now.getFullYear()).slice(-2);\nconst dateStr = `${day}_${mon}_${yr}`;\nconst searchKw = (job.search_keywords || job.title || '').replace(/[^a-zA-Z0-9]/g, '_');\nconst company = (job.company_name || '').replace(/[^a-zA-Z0-9]/g, '_');\nconst title = (job.title || '').replace(/[^a-zA-Z0-9]/g, '_');\nconst location = (job.location || 'Sydney').replace(/[^a-zA-Z0-9]/g, '_');\nconst fileName = `Ashok_Mulchandani_${searchKw}_${dateStr}_JD_screenshot_${company}_${title}_${location}.png`;\n\nreturn [{\n  json: { ...job, file_name: fileName },\n  binary: {\n    data: {\n      data: base64.replace(/^data:image\\/\\w+;base64,/, ''),\n      mimeType: 'image/png',\n      fileName: fileName\n    }\n  }\n}];\n"
+      },
+      "id": "7a50eb62-f084-41d5-979e-a0e70bf2cc99",
+      "name": "Prepare Screenshot Binary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "name": "={{$json.file_name}}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "=1sen-9CXBmjT63w4L3ypWN2dHFB8p_j93",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "f0d8a84a-625b-484c-8455-7fd9b5eadcc6",
+      "name": "Upload Screenshot to Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        240,
+        224
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "SMbQovwtw9fzGPf2",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Extract Full Description').item.json;\nconst driveFile = $json;\nconst pdfUrl = driveFile.webViewLink || driveFile.webContentLink || '';\nreturn [{ json: { ...job, job_pdf_url: pdfUrl, screenshot_base64: '' } }];"
+      },
+      "id": "ec5503bb-99a1-4ff6-aa43-998ede76682a",
+      "name": "Set PDF URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.company_website}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "has-website"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "bb571eda-9358-46ab-910c-b5f5eb587036",
+      "name": "Has Company Website?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{$json.company_website}}\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "5784789b-e674-4726-a539-86e2d879ab01",
+      "name": "Firecrawl Scrape Company",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "rBgY4HYcYC151dgK",
+          "name": "Firecrawl API Key-Latest-03May26"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://testashok1.openai.azure.com/openai/deployments/Test-Ashok-1-gpt-4o/chat/completions?api-version=2024-02-01",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You extract concise company research for job application tailoring. Return JSON only with: company_summary (2-3 sentences), products (array), customers (array), values (array), technical_signals (array of tech/tools mentioned), hiring_signals (array), keywords (array of important terms for resume tailoring).\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Company: {{$('Extract Full Description').item.json.company_name}}\\n\\nJob Title: {{$('Extract Full Description').item.json.title}}\\n\\nCompany Website Content:\\n{{$json.data?.markdown ? $json.data.markdown.slice(0, 4000) : 'No website content available'}}\\n\\nJob Description:\\n{{$('Extract Full Description').item.json.description.slice(0, 3000)}}\"\n    }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"max_tokens\": 1000\n}",
+        "options": {}
+      },
+      "id": "4eae7ffc-731e-4bee-8831-b91189f379d6",
+      "name": "Azure OpenAI Company Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jjUOHftcBqLwwjjm",
+          "name": "Azure OpenAI API Key-03May26"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Extract Full Description').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet company;\ntry { company = JSON.parse(raw); } catch (e) { company = { parse_error: true, raw: raw.slice(0, 500) }; }\n\n// Check if we have a PDF URL from the screenshot path\nconst pdfUrl = job.job_pdf_url || '';\n\nreturn [{ json: {\n  ...job,\n  company_summary: company.company_summary || JSON.stringify(company).slice(0, 500),\n  company_research: company,\n  job_pdf_url: pdfUrl,\n  screenshot_base64: '',\n  status: 'enriched',\n  updated_at: new Date().toISOString()\n} }];"
+      },
+      "id": "dd4f16a1-2f8f-4852-bf8c-09ab7728a2ca",
+      "name": "Parse Company Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Extract Full Description').item.json;\nreturn [{ json: {\n  ...job,\n  company_summary: 'No company website found - using job description only',\n  company_research: {},\n  screenshot_base64: '',\n  status: 'enriched',\n  updated_at: new Date().toISOString()\n} }];"
+      },
+      "id": "5491e54e-f93e-426d-bd22-5a1b3d8c3f78",
+      "name": "Skip Company Enrichment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
+          "mode": ""
+        },
+        "sheetName": "Jobs",
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "id": "e49a08b0-c89b-4c9b-b497-27f36dfc5a56",
+      "name": "Update Job Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        720,
+        80
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "1EPATbG9UgFp0Cvm",
+          "name": "Google Service Account account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Discovered Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Discovered Jobs": {
+      "main": [
+        [
+          {
+            "node": "Prepare Job Scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Job Scrape": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl Scrape Job Page",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Firecrawl Screenshot Job Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl Scrape Job Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Full Description",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Full Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl Screenshot Job Page": {
+      "main": [
+        [
+          {
+            "node": "Has Screenshot?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Full Description": {
+      "main": [
+        [
+          {
+            "node": "Has Company Website?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Screenshot?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Screenshot Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Screenshot Binary": {
+      "main": [
+        [
+          {
+            "node": "Upload Screenshot to Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Screenshot to Drive": {
+      "main": [
+        [
+          {
+            "node": "Set PDF URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Company Website?": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl Scrape Company",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Company Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl Scrape Company": {
+      "main": [
+        [
+          {
+            "node": "Azure OpenAI Company Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Company Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Company Summary": {
+      "main": [
+        [
+          {
+            "node": "Parse Company Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Company Summary": {
+      "main": [
+        [
+          {
+            "node": "Update Job Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Company Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Update Job Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set PDF URL": {
+      "main": [
+        [
+          {
+            "node": "Update Job Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "fb7543a4-39e8-4f98-bedd-495ddd81cee6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
+  },
+  "id": "qYnihfBVOupMODr8",
+  "tags": []
+}

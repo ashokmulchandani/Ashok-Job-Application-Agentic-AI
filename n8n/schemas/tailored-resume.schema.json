@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TailoredResume",
+  "type": "object",
+  "required": [
+    "job_id",
+    "document_title",
+    "resume_html",
+    "resume_markdown",
+    "tailoring_rationale",
+    "keywords_used",
+    "risks_or_gaps"
+  ],
+  "properties": {
+    "job_id": { "type": "string" },
+    "document_title": { "type": "string" },
+    "resume_html": { "type": "string" },
+    "resume_markdown": { "type": "string" },
+    "tailoring_rationale": { "type": "string" },
+    "keywords_used": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "risks_or_gaps": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}
+

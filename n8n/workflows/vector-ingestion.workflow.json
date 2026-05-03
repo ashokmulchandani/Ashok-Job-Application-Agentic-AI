@@ -1,0 +1,97 @@
+{
+  "name": "Job Agent - 02b Vector Ingestion",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json;\nconst records = [];\nif (input.master_resume) {\n  const chunks = String(input.master_resume).match(/[\\s\\S]{1,1800}/g) || [];\n  chunks.forEach((text, index) => records.push({ id: `resume_${index + 1}`, text, metadata: { type: 'resume_chunk', section: 'master_resume', chunk_index: index } }));\n}\nif (input.description) {\n  records.push({ id: `${input.job_id || 'job'}_description`, text: input.description, metadata: { type: 'job_description', job_id: input.job_id || '', company_name: input.company_name || '', role_title: input.title || '', source_url: input.job_url || '' } });\n}\nif (input.company_research) {\n  const text = typeof input.company_research === 'string' ? input.company_research : JSON.stringify(input.company_research);\n  records.push({ id: `${input.job_id || input.company_name || 'company'}_research`, text, metadata: { type: 'company_research', job_id: input.job_id || '', company_name: input.company_name || '', source_url: input.company_website || input.company_url || '' } });\n}\nreturn records.map((record) => ({ json: record }));"
+      },
+      "id": "build-vector-records",
+      "name": "Build Vector Records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": $env.OPENAI_EMBEDDING_MODEL || \"text-embedding-3-large\",\n  \"input\": $json.text\n}"
+      },
+      "id": "create-embedding",
+      "name": "Create OpenAI Embedding",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_N8N_CREDENTIAL_ID",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const source = $('Build Vector Records').item.json;\nconst vector = $json.data?.[0]?.embedding || [];\nreturn [{ json: {\n  vectors: [{\n    id: source.id,\n    values: vector,\n    metadata: { ...source.metadata, text: source.text.slice(0, 4000), created_at: new Date().toISOString() }\n  }],\n  namespace: $env.PINECONE_NAMESPACE || 'job-application-agent'\n}}];"
+      },
+      "id": "build-pinecone-upsert",
+      "name": "Build Pinecone Upsert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.PINECONE_INDEX_HOST}}/vectors/upsert",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}"
+      },
+      "id": "pinecone-upsert",
+      "name": "Pinecone Upsert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_N8N_CREDENTIAL_ID",
+          "name": "Pinecone API Key"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Build Vector Records", "type": "main", "index": 0 }]]
+    },
+    "Build Vector Records": {
+      "main": [[{ "node": "Create OpenAI Embedding", "type": "main", "index": 0 }]]
+    },
+    "Create OpenAI Embedding": {
+      "main": [[{ "node": "Build Pinecone Upsert", "type": "main", "index": 0 }]]
+    },
+    "Build Pinecone Upsert": {
+      "main": [[{ "node": "Pinecone Upsert", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "starter-vector-ingestion"
+}
+
