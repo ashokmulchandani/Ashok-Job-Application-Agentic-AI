@@ -116,7 +116,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const job = $json;\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  status: job.status || 'resume_generated',\n  resume_doc_url: job.doc_url || '',\n  updated_at: job.updated_at || new Date().toISOString()\n} }];\n"
+        "jsCode": "const job = $('Prepare HTML Binary').item.json;\nconst docUrl = $json.documentUrl || $json.url || '';\n\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  status: 'resume_generated',\n  resume_doc_url: docUrl,\n  updated_at: new Date().toISOString()\n} }];\n"
       },
       "id": "33701e34-203a-4d38-840a-46ffbfc9b129",
       "name": "Prepare Sheet Update",
@@ -614,44 +614,60 @@
     },
     {
       "parameters": {
-        "jsCode": "const result = $json;\nconst job = $('Prepare HTML Binary').item.json;\nconst docUrl = result.webViewLink || (result.id ? 'https://drive.google.com/file/d/' + result.id + '/view' : '');\n\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  doc_url: docUrl,\n  status: 'resume_generated',\n  updated_at: new Date().toISOString()\n} }];\n"
+        "folderId": "=1HLHfN_hRD0e2RM3oH4iXkyrcrhby3dQB",
+        "title": "=Ashok_Mulchandani_{{$json.search_keywords ? $json.search_keywords.replace(/[^a-zA-Z0-9]/g, '_') : $json.title.replace(/[^a-zA-Z0-9]/g, '_')}}_{{new Date().toLocaleDateString('en-AU', {day:'2-digit',month:'short',year:'2-digit'}).replace(/ /g,'_')}}_resume_{{$json.company_name.replace(/[^a-zA-Z0-9]/g, '_')}}_{{$json.title.replace(/[^a-zA-Z0-9]/g, '_')}}_{{$json.location ? $json.location.replace(/[^a-zA-Z0-9]/g, '_') : 'Sydney'}}\n"
+      },
+      "id": "74bf67d0-1794-4758-830a-c7f1444054a2",
+      "name": "Create Google Doc",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        800,
+        160
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "msPQz7kGnIy6N8EF",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const docId = $json.id;\nconst job = $('Prepare HTML Binary').item.json;\nlet content = job.resume_markdown || job.resume_html_content || 'No resume content';\n\n// Strip HTML tags if using HTML content as fallback\nif (content.startsWith('<')) {\n  content = content.replace(/<[^>]*>/g, '').replace(/\\s+/g, ' ').trim();\n}\n\nconst body = {\n  requests: [{\n    insertText: {\n      location: { index: 1 },\n      text: content\n    }\n  }]\n};\n\nreturn [{ json: {\n  docId,\n  body_string: JSON.stringify(body),\n  documentUrl: 'https://docs.google.com/document/d/' + docId + '/edit'\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -96,
-        656
+        992,
+        160
       ],
-      "id": "ddfbfc58-7d91-4d7f-8d83-46be3c5815ff",
-      "name": "Extract Doc URL"
+      "id": "73a226e0-4911-433e-8092-abef1a672b91",
+      "name": "Prepare Doc Content"
     },
     {
       "parameters": {
-        "name": "={{$('Prepare HTML Binary').item.json.doc_file_name}}",
-        "driveId": {
-          "__rl": true,
-          "mode": "list",
-          "value": "My Drive"
-        },
-        "folderId": {
-          "__rl": true,
-          "value": "1HLHfN_hRD0e2RM3oH4iXkyrcrhby3dQB",
-          "mode": "id"
-        },
+        "method": "POST",
+        "url": "=https://docs.googleapis.com/v1/documents/{{ $json.docId }}:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDocsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body_string }}",
         "options": {}
       },
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "position": [
-        1100,
+        1200,
         160
       ],
-      "id": "upload-as-doc-001",
-      "name": "Upload as Google Doc",
+      "id": "ee3ce684-08be-4753-a6ed-414751bcc09e",
+      "name": "Insert Doc Text",
       "credentials": {
-        "googleDriveOAuth2Api": {
-          "id": "SMbQovwtw9fzGPf2",
-          "name": "Google Drive account"
+        "googleDocsOAuth2Api": {
+          "id": "msPQz7kGnIy6N8EF",
+          "name": "Google Docs account"
         }
       }
     }
@@ -773,7 +789,7 @@
             "index": 0
           },
           {
-            "node": "Upload as Google Doc",
+            "node": "Create Google Doc",
             "type": "main",
             "index": 0
           }
@@ -785,22 +801,33 @@
         []
       ]
     },
-    "Extract Doc URL": {
+    "Create Google Doc": {
       "main": [
         [
           {
-            "node": "Prepare Sheet Update",
+            "node": "Prepare Doc Content",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Upload as Google Doc": {
+    "Prepare Doc Content": {
       "main": [
         [
           {
-            "node": "Extract Doc URL",
+            "node": "Insert Doc Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Doc Text": {
+      "main": [
+        [
+          {
+            "node": "Prepare Sheet Update",
             "type": "main",
             "index": 0
           }
