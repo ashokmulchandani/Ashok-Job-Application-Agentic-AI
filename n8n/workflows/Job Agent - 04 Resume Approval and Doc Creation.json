@@ -116,7 +116,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const job = $json;\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  status: 'resume_generated',\n  resume_doc_url: job.resume_doc_url || '',\n  updated_at: job.updated_at || new Date().toISOString()\n} }];\n"
+        "jsCode": "const job = $json;\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  status: 'resume_generated',\n  resume_doc_url: job.doc_url || '',\n  updated_at: new Date().toISOString()\n} }];\n"
       },
       "id": "b165cb04-b783-4331-818f-ae63dd2c6416",
       "name": "Prepare Sheet Update",
@@ -614,19 +614,6 @@
     },
     {
       "parameters": {
-        "jsCode": "const docResult = $('Convert HTML to Google Doc').item.json;\nconst htmlResult = $('Upload HTML File').item.json;\nconst job = $('Prepare HTML Binary').item.json;\n\nconst docUrl = docResult.doc_url || '';\nconst htmlUrl = htmlResult.webViewLink || htmlResult.webContentLink || '';\n\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  status: 'resume_generated',\n  resume_doc_url: docUrl,\n  updated_at: new Date().toISOString()\n} }];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1200,
-        160
-      ],
-      "id": "collect-urls-001",
-      "name": "Collect Doc URLs"
-    },
-    {
-      "parameters": {
         "jsCode": "const job = $('Prepare HTML Binary').item.json;\nconst html = job.resume_html_content || '<html><body>No content</body></html>';\nconst fileName = job.doc_file_name;\nconst folderId = '1HLHfN_hRD0e2RM3oH4iXkyrcrhby3dQB';\n\n// Create multipart body for Drive API\nconst boundary = 'resume_upload_boundary';\nconst metadata = JSON.stringify({\n  name: fileName,\n  mimeType: 'application/vnd.google-apps.document',\n  parents: [folderId]\n});\n\nconst body = \n  '--' + boundary + '\\r\\n' +\n  'Content-Type: application/json; charset=UTF-8\\r\\n\\r\\n' +\n  metadata + '\\r\\n' +\n  '--' + boundary + '\\r\\n' +\n  'Content-Type: text/html\\r\\n\\r\\n' +\n  html + '\\r\\n' +\n  '--' + boundary + '--';\n\nconst response = await this.helpers.httpRequestWithAuthentication.call(\n  this, 'googleDriveOAuth2Api', {\n    method: 'POST',\n    url: 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',\n    headers: {\n      'Content-Type': 'multipart/related; boundary=' + boundary\n    },\n    body: body,\n    json: false\n  }\n);\n\nconst result = typeof response === 'string' ? JSON.parse(response) : response;\nconst docUrl = 'https://docs.google.com/document/d/' + result.id + '/edit';\n\nreturn [{ json: { ...job, doc_id: result.id, doc_url: docUrl } }];\n"
       },
       "type": "n8n-nodes-base.code",
@@ -760,11 +747,6 @@
             "node": "Upload HTML File",
             "type": "main",
             "index": 0
-          },
-          {
-            "node": "Convert HTML to Google Doc",
-            "type": "main",
-            "index": 0
           }
         ]
       ]
@@ -773,18 +755,7 @@
       "main": [
         [
           {
-            "node": "Collect Doc URLs",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Collect Doc URLs": {
-      "main": [
-        [
-          {
-            "node": "Prepare Sheet Update",
+            "node": "Convert HTML to Google Doc",
             "type": "main",
             "index": 0
           }
@@ -795,7 +766,7 @@
       "main": [
         [
           {
-            "node": "Collect Doc URLs",
+            "node": "Prepare Sheet Update",
             "type": "main",
             "index": 0
           }
