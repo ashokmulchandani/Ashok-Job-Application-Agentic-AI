@@ -614,7 +614,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const result = $json;\nconst job = $('Prepare HTML Binary').item.json;\nconst docUrl = result.webViewLink || (result.id ? 'https://docs.google.com/document/d/' + result.id + '/edit' : '');\n\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  doc_url: docUrl,\n  status: 'resume_generated',\n  updated_at: new Date().toISOString()\n} }];\n"
+        "jsCode": "const result = $json;\nconst job = $('Prepare HTML Binary').item.json;\nconst docUrl = result.webViewLink || (result.id ? 'https://drive.google.com/file/d/' + result.id + '/view' : '');\n\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  doc_url: docUrl,\n  status: 'resume_generated',\n  updated_at: new Date().toISOString()\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -771,19 +771,18 @@
             "node": "Upload HTML File",
             "type": "main",
             "index": 0
-          }
-        ]
-      ]
-    },
-    "Upload HTML File": {
-      "main": [
-        [
+          },
           {
             "node": "Upload as Google Doc",
             "type": "main",
             "index": 0
           }
         ]
+      ]
+    },
+    "Upload HTML File": {
+      "main": [
+        []
       ]
     },
     "Extract Doc URL": {
