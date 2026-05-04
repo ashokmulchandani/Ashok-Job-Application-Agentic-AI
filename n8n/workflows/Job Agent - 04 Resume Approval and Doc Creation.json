@@ -116,27 +116,7 @@
     },
     {
       "parameters": {
-        "folderId": "=1HLHfN_hRD0e2RM3oH4iXkyrcrhby3dQB",
-        "title": "=Ashok_Mulchandani_{{$json.search_keywords ? $json.search_keywords.replace(/[^a-zA-Z0-9]/g, '_') : $json.title.replace(/[^a-zA-Z0-9]/g, '_')}}_{{new Date().toLocaleDateString('en-AU', {day:'2-digit',month:'short',year:'2-digit'}).replace(/ /g,'_')}}_resume_{{$json.company_name.replace(/[^a-zA-Z0-9]/g, '_')}}_{{$json.title.replace(/[^a-zA-Z0-9]/g, '_')}}_{{$json.location ? $json.location.replace(/[^a-zA-Z0-9]/g, '_') : 'Sydney'}}\n"
-      },
-      "id": "74bf67d0-1794-4758-830a-c7f1444054a2",
-      "name": "Create Google Doc",
-      "type": "n8n-nodes-base.googleDocs",
-      "typeVersion": 2,
-      "position": [
-        800,
-        160
-      ],
-      "credentials": {
-        "googleDocsOAuth2Api": {
-          "id": "msPQz7kGnIy6N8EF",
-          "name": "Google Docs account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const job = $('Has Review Notes?').item.json || $('Parse Revised Resume').item.json;\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  status: 'resume_generated',\n  resume_doc_url: $json.documentUrl || $json.url || '',\n  updated_at: new Date().toISOString()\n} }];"
+        "jsCode": "const job = $json;\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  status: 'resume_generated',\n  resume_doc_url: job.resume_doc_url || '',\n  updated_at: job.updated_at || new Date().toISOString()\n} }];\n"
       },
       "id": "b165cb04-b783-4331-818f-ae63dd2c6416",
       "name": "Prepare Sheet Update",
@@ -565,72 +545,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const docId = $json.id;\n\nlet content = '';\ntry { content = $('Prepare Doc Data').item.json.resume_markdown || ''; } catch(e) {}\nif (!content) {\n  try { content = $('Parse Revised Resume').item.json.resume_markdown || ''; } catch(e) {}\n}\nif (!content) {\n  try { content = $('Has Review Notes?').item.json.resume_markdown || ''; } catch(e) {}\n}\nif (!content) content = 'No resume content found';\n\nconst body = {\n  requests: [\n    {\n      insertText: {\n        location: { index: 1 },\n        text: content\n      }\n    }\n  ]\n};\n\nreturn [{ json: { docId, body_string: JSON.stringify(body), documentUrl: 'https://docs.google.com/document/d/' + docId + '/edit' } }];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        992,
-        160
-      ],
-      "id": "73a226e0-4911-433e-8092-abef1a672b91",
-      "name": "Prepare Doc Content"
-    },
-    {
-      "parameters": {
-        "jsCode": "const job = $('Parse Revised Resume').item.json || $('Has Review Notes?').item.json;\nconst docId = $json.id;\nconst html = job.resume_html || '';\nconst markdown = job.resume_markdown || '';\n\n// Use markdown content, convert basic formatting\nconst content = markdown || html.replace(/<[^>]*>/g, '');\n\nreturn [{ json: { \n  docId,\n  content,\n  ...job,\n  doc_id: docId\n} }];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        512,
-        -112
-      ],
-      "id": "eebc4241-bf33-41d5-acf8-a5ced464145d",
-      "name": "Insert Doc Content"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://docs.googleapis.com/v1/documents/{{ $json.docId }}:batchUpdate",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "googleDocsOAuth2Api",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"requests\": [\n    {\n      \"insertText\": {\n        \"location\": { \"index\": 1 },\n        \"text\": \"{{ $json.content }}\"\n      }\n    }\n  ]\n}\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        720,
-        -112
-      ],
-      "id": "4cd856b6-75da-425e-8c2c-359ea4814a5b",
-      "name": "Update Doc Content",
-      "credentials": {
-        "googleDocsOAuth2Api": {
-          "id": "msPQz7kGnIy6N8EF",
-          "name": "Google Docs account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const docId = $json.id;\n\n// Go back to the node before Create Google Doc to get resume content\nlet content = '';\ntry {\n  content = $('Prepare Doc Data').item.json.resume_markdown || '';\n} catch(e) {}\nif (!content) {\n  try {\n    content = $('Parse Revised Resume').item.json.resume_markdown || '';\n  } catch(e) {}\n}\nif (!content) {\n  try {\n    content = $('Has Review Notes?').item.json.resume_markdown || '';\n  } catch(e) {}\n}\n\nif (!content) content = 'No resume content found';\n\nconst body = {\n  requests: [\n    {\n      insertText: {\n        location: { index: 1 },\n        text: content\n      }\n    }\n  ]\n};\n\nconst response = await this.helpers.httpRequestWithAuthentication.call(this, 'googleDocsOAuth2Api', {\n  method: 'POST',\n  url: `https://docs.googleapis.com/v1/documents/${docId}:batchUpdate`,\n  body,\n  json: true\n});\n\nreturn [{ json: { docId, documentUrl: `https://docs.google.com/document/d/${docId}/edit` } }];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1120,
-        400
-      ],
-      "id": "b45ed15c-8e13-4384-8efd-14f2113269c0",
-      "name": "Write Doc Content"
-    },
-    {
-      "parameters": {
-        "jsCode": "const job = $json;\nreturn [{ json: { ...job } }];\n"
+        "jsCode": "const job = $json;\n\n// Build filename\nconst now = new Date();\nconst day = String(now.getDate()).padStart(2, '0');\nconst months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\nconst mon = months[now.getMonth()];\nconst yr = String(now.getFullYear()).slice(-2);\nconst dateStr = day + '_' + mon + '_' + yr;\nconst kw = (job.search_keywords || job.title || '').replace(/[^a-zA-Z0-9]/g, '_');\nconst company = (job.company_name || '').replace(/[^a-zA-Z0-9]/g, '_');\nconst title = (job.title || '').replace(/[^a-zA-Z0-9]/g, '_');\nconst loc = (job.location || 'Sydney').replace(/[^a-zA-Z0-9]/g, '_');\nconst baseName = 'Ashok_Mulchandani_' + kw + '_' + dateStr + '_resume_' + company + '_' + title + '_' + loc;\n\n// Get resume HTML\nlet html = job.resume_html || '';\nif (!html && job.resume_markdown) {\n  html = '<html><body><pre>' + job.resume_markdown + '</pre></body></html>';\n}\nif (!html) html = '<html><body>No resume content</body></html>';\n\nreturn [{ json: { ...job, file_name: baseName, resume_html_content: html } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -656,29 +571,91 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "=https://docs.googleapis.com/v1/documents/{{ $json.docId }}:batchUpdate",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "googleDocsOAuth2Api",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ $json.body_string }}",
+        "jsCode": "const job = $json;\nconst html = job.resume_html_content || '<html><body>No content</body></html>';\nconst fileName = job.file_name + '.html';\n\n// Convert HTML string to base64 for binary\nconst base64 = Buffer.from(html, 'utf-8').toString('base64');\n\nreturn [{\n  json: { ...job, html_file_name: fileName, doc_file_name: job.file_name },\n  binary: {\n    data: {\n      data: base64,\n      mimeType: 'text/html',\n      fileName: fileName\n    }\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        160
+      ],
+      "id": "prep-html-binary-001",
+      "name": "Prepare HTML Binary"
+    },
+    {
+      "parameters": {
+        "name": "={{$json.html_file_name}}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1HLHfN_hRD0e2RM3oH4iXkyrcrhby3dQB",
+          "mode": "id"
+        },
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1000,
+        60
+      ],
+      "id": "upload-html-001",
+      "name": "Upload HTML File",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "SMbQovwtw9fzGPf2",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "={{$('Prepare HTML Binary').item.json.doc_file_name}}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1HLHfN_hRD0e2RM3oH4iXkyrcrhby3dQB",
+          "mode": "id"
+        },
+        "options": {
+          "convert": true
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1000,
+        260
+      ],
+      "id": "upload-doc-001",
+      "name": "Upload as Google Doc",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "SMbQovwtw9fzGPf2",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the Google Doc URL from Upload as Google Doc\nconst docResult = $('Upload as Google Doc').item.json;\nconst htmlResult = $('Upload HTML File').item.json;\nconst job = $('Prepare HTML Binary').item.json;\n\nconst docUrl = docResult.webViewLink || ('https://docs.google.com/document/d/' + docResult.id + '/edit');\nconst htmlUrl = htmlResult.webViewLink || htmlResult.webContentLink || '';\n\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  status: 'resume_generated',\n  resume_doc_url: docUrl,\n  updated_at: new Date().toISOString()\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         1200,
         160
       ],
-      "id": "ee3ce684-08be-4753-a6ed-414751bcc09e",
-      "name": "Insert Doc Text",
-      "credentials": {
-        "googleDocsOAuth2Api": {
-          "id": "msPQz7kGnIy6N8EF",
-          "name": "Google Docs account"
-        }
-      }
+      "id": "collect-urls-001",
+      "name": "Collect Doc URLs"
     }
   ],
   "pinData": {},
@@ -745,17 +722,6 @@
         ]
       ]
     },
-    "Create Google Doc": {
-      "main": [
-        [
-          {
-            "node": "Prepare Doc Content",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Prepare Sheet Update": {
       "main": [
         [
@@ -778,43 +744,11 @@
         ]
       ]
     },
-    "Prepare Doc Content": {
-      "main": [
-        [
-          {
-            "node": "Insert Doc Text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Insert Doc Content": {
-      "main": [
-        [
-          {
-            "node": "Update Doc Content",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update Doc Content": {
-      "main": [
-        []
-      ]
-    },
-    "Write Doc Content": {
-      "main": [
-        []
-      ]
-    },
     "Prepare Doc Data": {
       "main": [
         [
           {
-            "node": "Create Google Doc",
+            "node": "Prepare HTML Binary",
             "type": "main",
             "index": 0
           }
@@ -832,7 +766,45 @@
         ]
       ]
     },
-    "Insert Doc Text": {
+    "Prepare HTML Binary": {
+      "main": [
+        [
+          {
+            "node": "Upload HTML File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upload as Google Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload HTML File": {
+      "main": [
+        [
+          {
+            "node": "Collect Doc URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload as Google Doc": {
+      "main": [
+        [
+          {
+            "node": "Collect Doc URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Doc URLs": {
       "main": [
         [
           {
