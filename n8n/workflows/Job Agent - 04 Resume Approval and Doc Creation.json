@@ -614,22 +614,64 @@
     },
     {
       "parameters": {
-        "jsCode": "const job = $('Prepare HTML Binary').item.json;\nconst html = job.resume_html_content || '<html><body>No content</body></html>';\nconst fileName = job.doc_file_name;\nconst folderId = '1HLHfN_hRD0e2RM3oH4iXkyrcrhby3dQB';\n\n// Create multipart body for Drive API\nconst boundary = 'resume_upload_boundary';\nconst metadata = JSON.stringify({\n  name: fileName,\n  mimeType: 'application/vnd.google-apps.document',\n  parents: [folderId]\n});\n\nconst body = \n  '--' + boundary + '\\r\\n' +\n  'Content-Type: application/json; charset=UTF-8\\r\\n\\r\\n' +\n  metadata + '\\r\\n' +\n  '--' + boundary + '\\r\\n' +\n  'Content-Type: text/html\\r\\n\\r\\n' +\n  html + '\\r\\n' +\n  '--' + boundary + '--';\n\nconst response = await this.helpers.httpRequestWithAuthentication.call(\n  this, 'googleDriveOAuth2Api', {\n    method: 'POST',\n    url: 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',\n    headers: {\n      'Content-Type': 'multipart/related; boundary=' + boundary\n    },\n    body: body,\n    json: false\n  }\n);\n\nconst result = typeof response === 'string' ? JSON.parse(response) : response;\nconst docUrl = 'https://docs.google.com/document/d/' + result.id + '/edit';\n\nreturn [{ json: { ...job, doc_id: result.id, doc_url: docUrl } }];\n"
+        "jsCode": "const job = $json;\nconst html = $('Prepare HTML Binary').item.json.resume_html_content || '<html><body>No content</body></html>';\nconst fileName = $('Prepare HTML Binary').item.json.doc_file_name || 'resume';\n\nconst metadata = JSON.stringify({\n  name: fileName,\n  mimeType: 'application/vnd.google-apps.document',\n  parents: ['1HLHfN_hRD0e2RM3oH4iXkyrcrhby3dQB']\n});\n\nconst boundary = '----resumeboundary';\nconst body = '--' + boundary + '\\r\\n'\n  + 'Content-Type: application/json; charset=UTF-8\\r\\n\\r\\n'\n  + metadata + '\\r\\n'\n  + '--' + boundary + '\\r\\n'\n  + 'Content-Type: text/html\\r\\n\\r\\n'\n  + html + '\\r\\n'\n  + '--' + boundary + '--';\n\nreturn [{ json: { ...job, multipart_body: body, boundary: boundary } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1000,
+        1050,
         260
       ],
-      "id": "convert-doc-001",
-      "name": "Convert HTML to Google Doc",
+      "id": "build-drive-req-001",
+      "name": "Build Drive Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "=multipart/related; boundary={{$json.boundary}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{$json.multipart_body}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1250,
+        260
+      ],
+      "id": "upload-doc-drive-001",
+      "name": "Upload to Drive as Doc",
       "credentials": {
         "googleDriveOAuth2Api": {
           "id": "SMbQovwtw9fzGPf2",
           "name": "Google Drive account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json;\nconst job = $('Prepare HTML Binary').item.json;\nconst docUrl = result.id ? 'https://docs.google.com/document/d/' + result.id + '/edit' : '';\n\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  doc_url: docUrl\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1450,
+        260
+      ],
+      "id": "extract-url-001",
+      "name": "Extract Doc URL"
     }
   ],
   "pinData": {},
@@ -755,14 +797,36 @@
       "main": [
         [
           {
-            "node": "Convert HTML to Google Doc",
+            "node": "Build Drive Request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Convert HTML to Google Doc": {
+    "Build Drive Request": {
+      "main": [
+        [
+          {
+            "node": "Upload to Drive as Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Drive as Doc": {
+      "main": [
+        [
+          {
+            "node": "Extract Doc URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Doc URL": {
       "main": [
         [
           {
