@@ -8,7 +8,7 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -720,
+        -1392,
         80
       ]
     },
@@ -17,10 +17,14 @@
         "authentication": "serviceAccount",
         "documentId": {
           "__rl": true,
-          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
-          "mode": ""
+          "mode": "id",
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE"
         },
-        "sheetName": "Jobs",
+        "sheetName": {
+          "__rl": true,
+          "value": "Jobs",
+          "mode": "name"
+        },
         "options": {}
       },
       "id": "d8fd4b89-756b-4357-95fb-77102f7fa979",
@@ -28,8 +32,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        -480,
-        80
+        -992,
+        64
       ],
       "credentials": {
         "googleApi": {
@@ -67,19 +71,19 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -240,
+        -384,
         80
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://testashok1.openai.azure.com/openai/deployments/Test-Ashok-1-gpt-4o/chat/completions?api-version=2024-02-01",
+        "url": "=https://testashok1.openai.azure.com/openai/deployments/Test-Ashok-1-gpt-4o/chat/completions?api-version=2025-01-01-preview",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an expert resume writer. Revise the resume based on the reviewer's feedback. Return JSON with: resume_html, resume_markdown, tailoring_rationale. Do NOT fabricate experience.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"CURRENT RESUME:\\n{{$json.resume_markdown}}\\n\\nREVIEW NOTES:\\n{{$json.review_notes}}\\n\\nJOB TITLE: {{$json.title}}\\nCOMPANY: {{$json.company_name}}\"\n    }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"max_tokens\": 3000\n}",
+        "jsonBody": "={{ $json.body_string }}",
         "options": {}
       },
       "id": "d178d64d-4a6a-42f4-a7af-c24f15f60ef0",
@@ -87,8 +91,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        0,
-        0
+        32,
+        -16
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -113,15 +117,15 @@
     {
       "parameters": {
         "folderId": "=1HLHfN_hRD0e2RM3oH4iXkyrcrhby3dQB",
-        "title": "==Ashok_Mulchandani_{{$json.search_keywords ? $json.search_keywords.replace(/[^a-zA-Z0-9]/g, '_') : $json.title.replace(/[^a-zA-Z0-9]/g, '_')}}_{{new Date().toLocaleDateString('en-AU', {day:'2-digit',month:'short',year:'2-digit'}).replace(/ /g,'_')}}_resume_{{$json.company_name.replace(/[^a-zA-Z0-9]/g, '_')}}_{{$json.title.replace(/[^a-zA-Z0-9]/g, '_')}}_{{$json.location ? $json.location.replace(/[^a-zA-Z0-9]/g, '_') : 'Sydney'}}\n"
+        "title": "=Ashok_Mulchandani_{{$json.search_keywords ? $json.search_keywords.replace(/[^a-zA-Z0-9]/g, '_') : $json.title.replace(/[^a-zA-Z0-9]/g, '_')}}_{{new Date().toLocaleDateString('en-AU', {day:'2-digit',month:'short',year:'2-digit'}).replace(/ /g,'_')}}_resume_{{$json.company_name.replace(/[^a-zA-Z0-9]/g, '_')}}_{{$json.title.replace(/[^a-zA-Z0-9]/g, '_')}}_{{$json.location ? $json.location.replace(/[^a-zA-Z0-9]/g, '_') : 'Sydney'}}\n"
       },
       "id": "74bf67d0-1794-4758-830a-c7f1444054a2",
       "name": "Create Google Doc",
       "type": "n8n-nodes-base.googleDocs",
       "typeVersion": 2,
       "position": [
-        480,
-        80
+        800,
+        160
       ],
       "credentials": {
         "googleDocsOAuth2Api": {
@@ -139,8 +143,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        720,
-        80
+        1424,
+        160
       ]
     },
     {
@@ -149,15 +153,383 @@
         "operation": "appendOrUpdate",
         "documentId": {
           "__rl": true,
-          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
-          "mode": ""
+          "mode": "id",
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE"
         },
-        "sheetName": "Jobs",
+        "sheetName": {
+          "__rl": true,
+          "value": "Jobs",
+          "mode": "name"
+        },
         "columns": {
           "mappingMode": "autoMapInputData",
           "value": {},
-          "matchingColumns": [],
-          "schema": [],
+          "matchingColumns": [
+            "job_id"
+          ],
+          "schema": [
+            {
+              "id": "serial_no",
+              "displayName": "serial_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_id",
+              "displayName": "job_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "job_url_hash",
+              "displayName": "job_url_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_url",
+              "displayName": "job_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_url",
+              "displayName": "company_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_website",
+              "displayName": "company_website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "remote_policy",
+              "displayName": "remote_policy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salary",
+              "displayName": "salary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contract_type",
+              "displayName": "contract_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "posted_at",
+              "displayName": "posted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apply_url",
+              "displayName": "apply_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "search_keywords",
+              "displayName": "search_keywords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_score",
+              "displayName": "fit_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_decision",
+              "displayName": "fit_decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_rationale",
+              "displayName": "fit_rationale",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "matched_requirements",
+              "displayName": "matched_requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "missing_requirements",
+              "displayName": "missing_requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_summary",
+              "displayName": "company_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_research",
+              "displayName": "company_research",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_markdown",
+              "displayName": "resume_markdown",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_html",
+              "displayName": "resume_html",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_doc_url",
+              "displayName": "resume_doc_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_pdf_url",
+              "displayName": "job_pdf_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "applied_at",
+              "displayName": "applied_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error",
+              "displayName": "error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "scrape_url",
+              "displayName": "scrape_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "screenshot_base64",
+              "displayName": "screenshot_base64",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "master_resume",
+              "displayName": "master_resume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "selected_resume_type",
+              "displayName": "selected_resume_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit",
+              "displayName": "fit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tailoring_rationale",
+              "displayName": "tailoring_rationale",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
@@ -168,13 +540,143 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        960,
-        80
+        1664,
+        160
       ],
       "credentials": {
         "googleApi": {
           "id": "1EPATbG9UgFp0Cvm",
           "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $json;\nconst resume = (job.resume_markdown || '').replace(/[\\n\\r\\t]/g, ' ');\nconst master = (job.master_resume || '').replace(/[\\n\\r\\t]/g, ' ');\nconst notes = (job.review_notes || '').replace(/[\\n\\r\\t]/g, ' ');\n\nconst body = {\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are an expert resume writer. Revise the resume based on reviewer feedback and master resume data. Return JSON with: resume_html, resume_markdown, tailoring_rationale. HTML: font-family Google Sans Text, Arial, sans-serif; body 10pt; headers 13pt bold; color #1B1C1D; line-height 114%; 1px solid #1B1C1D separator under name; disc bullet markers. Do NOT fabricate experience.\"\n    },\n    {\n      role: \"user\",\n      content: \"CURRENT RESUME: \" + resume + \" MASTER RESUME: \" + master + \" REVIEW NOTES: \" + notes + \" JOB TITLE: \" + job.title + \" COMPANY: \" + job.company_name\n    }\n  ],\n  response_format: { type: \"json_object\" },\n  max_tokens: 4500\n};\n\nreturn [{ json: { ...job, body_string: JSON.stringify(body) } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        -96
+      ],
+      "id": "25e8a062-4cd6-48a8-b507-cee093248aeb",
+      "name": "Prepare Revision Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const docId = $json.id;\n\nlet content = '';\ntry { content = $('Prepare Doc Data').item.json.resume_markdown || ''; } catch(e) {}\nif (!content) {\n  try { content = $('Parse Revised Resume').item.json.resume_markdown || ''; } catch(e) {}\n}\nif (!content) {\n  try { content = $('Has Review Notes?').item.json.resume_markdown || ''; } catch(e) {}\n}\nif (!content) content = 'No resume content found';\n\nconst body = {\n  requests: [\n    {\n      insertText: {\n        location: { index: 1 },\n        text: content\n      }\n    }\n  ]\n};\n\nreturn [{ json: { docId, body_string: JSON.stringify(body), documentUrl: 'https://docs.google.com/document/d/' + docId + '/edit' } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        160
+      ],
+      "id": "73a226e0-4911-433e-8092-abef1a672b91",
+      "name": "Prepare Doc Content"
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Parse Revised Resume').item.json || $('Has Review Notes?').item.json;\nconst docId = $json.id;\nconst html = job.resume_html || '';\nconst markdown = job.resume_markdown || '';\n\n// Use markdown content, convert basic formatting\nconst content = markdown || html.replace(/<[^>]*>/g, '');\n\nreturn [{ json: { \n  docId,\n  content,\n  ...job,\n  doc_id: docId\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        -112
+      ],
+      "id": "eebc4241-bf33-41d5-acf8-a5ced464145d",
+      "name": "Insert Doc Content"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://docs.googleapis.com/v1/documents/{{ $json.docId }}:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDocsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"requests\": [\n    {\n      \"insertText\": {\n        \"location\": { \"index\": 1 },\n        \"text\": \"{{ $json.content }}\"\n      }\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        720,
+        -112
+      ],
+      "id": "4cd856b6-75da-425e-8c2c-359ea4814a5b",
+      "name": "Update Doc Content",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "msPQz7kGnIy6N8EF",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const docId = $json.id;\n\n// Go back to the node before Create Google Doc to get resume content\nlet content = '';\ntry {\n  content = $('Prepare Doc Data').item.json.resume_markdown || '';\n} catch(e) {}\nif (!content) {\n  try {\n    content = $('Parse Revised Resume').item.json.resume_markdown || '';\n  } catch(e) {}\n}\nif (!content) {\n  try {\n    content = $('Has Review Notes?').item.json.resume_markdown || '';\n  } catch(e) {}\n}\n\nif (!content) content = 'No resume content found';\n\nconst body = {\n  requests: [\n    {\n      insertText: {\n        location: { index: 1 },\n        text: content\n      }\n    }\n  ]\n};\n\nconst response = await this.helpers.httpRequestWithAuthentication.call(this, 'googleDocsOAuth2Api', {\n  method: 'POST',\n  url: `https://docs.googleapis.com/v1/documents/${docId}:batchUpdate`,\n  body,\n  json: true\n});\n\nreturn [{ json: { docId, documentUrl: `https://docs.google.com/document/d/${docId}/edit` } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        400
+      ],
+      "id": "b45ed15c-8e13-4384-8efd-14f2113269c0",
+      "name": "Write Doc Content"
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $json;\nreturn [{ json: { ...job } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        160
+      ],
+      "id": "226be083-96af-4aa8-870e-593baeddbae8",
+      "name": "Prepare Doc Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $('Read Approved Jobs').all();\nconst approved = items.filter(i => (i.json.status || '').trim().toLowerCase() === 'approved');\nif (approved.length === 0) throw new Error('No approved jobs found');\nreturn approved.map(i => ({ json: i.json }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -784,
+        64
+      ],
+      "id": "7f50bcd2-2dc5-4cb9-a154-eb7091446cad",
+      "name": "Filter Approved Only"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://docs.googleapis.com/v1/documents/{{ $json.docId }}:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDocsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body_string }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1200,
+        160
+      ],
+      "id": "ee3ce684-08be-4753-a6ed-414751bcc09e",
+      "name": "Insert Doc Text",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "msPQz7kGnIy6N8EF",
+          "name": "Google Docs account"
         }
       }
     }
@@ -196,7 +698,7 @@
       "main": [
         [
           {
-            "node": "Has Review Notes?",
+            "node": "Filter Approved Only",
             "type": "main",
             "index": 0
           }
@@ -207,14 +709,14 @@
       "main": [
         [
           {
-            "node": "Azure OpenAI Revise Resume",
+            "node": "Prepare Revision Request",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Create Google Doc",
+            "node": "Prepare Doc Data",
             "type": "main",
             "index": 0
           }
@@ -236,7 +738,7 @@
       "main": [
         [
           {
-            "node": "Create Google Doc",
+            "node": "Prepare Doc Data",
             "type": "main",
             "index": 0
           }
@@ -247,7 +749,7 @@
       "main": [
         [
           {
-            "node": "Prepare Sheet Update",
+            "node": "Prepare Doc Content",
             "type": "main",
             "index": 0
           }
@@ -264,6 +766,82 @@
           }
         ]
       ]
+    },
+    "Prepare Revision Request": {
+      "main": [
+        [
+          {
+            "node": "Azure OpenAI Revise Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Doc Content": {
+      "main": [
+        [
+          {
+            "node": "Insert Doc Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Doc Content": {
+      "main": [
+        [
+          {
+            "node": "Update Doc Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Doc Content": {
+      "main": [
+        []
+      ]
+    },
+    "Write Doc Content": {
+      "main": [
+        []
+      ]
+    },
+    "Prepare Doc Data": {
+      "main": [
+        [
+          {
+            "node": "Create Google Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Approved Only": {
+      "main": [
+        [
+          {
+            "node": "Has Review Notes?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Doc Text": {
+      "main": [
+        [
+          {
+            "node": "Prepare Sheet Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -271,7 +849,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "d0e412e3-062d-46d8-8974-d356e94c7786",
+  "versionId": "2cb54797-19d2-44df-a6f5-6ce991db61fa",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"

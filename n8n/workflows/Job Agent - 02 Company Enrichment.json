@@ -8,47 +8,47 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -1440,
-        80
+        6672,
+        4192
       ]
     },
     {
       "parameters": {
-        "authentication": "serviceAccount",
-        "documentId": {
-          "__rl": true,
-          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
-          "mode": ""
-        },
-        "sheetName": "Jobs",
-        "options": {}
+        "jsCode": "const mapResult = $json;\nconst mapLinks = mapResult.links || [];\n\n// Get company_website from upstream nodes\nlet companyWebsite = '';\ntry { companyWebsite = $('Extract Full Description').item.json.company_website || ''; } catch(e) {}\nif (!companyWebsite) {\n  try { companyWebsite = $('Extract Company URL').item.json.company_website || ''; } catch(e) {}\n}\n\nconst baseUrl = companyWebsite.replace(/\\/$/, '');\nlet sitemapUrls = [];\nlet sitemapSource = 'none';\n\n// Helper: fetch with timeout\nasync function safeFetch(url) {\n  try {\n    const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });\n    if (resp.ok) return await resp.text();\n  } catch(e) {}\n  return '';\n}\n\n// Helper: extract <loc> URLs from XML\nfunction extractLocs(xml) {\n  const locs = [];\n  const re = /<loc>(https?:\\/\\/[^<]+)<\\/loc>/gi;\n  let m;\n  while ((m = re.exec(xml)) !== null) locs.push(m[1]);\n  return locs;\n}\n\n// Step 1: Try robots.txt for sitemap path\nconst robotsTxt = await safeFetch(baseUrl + '/robots.txt');\nlet customSitemapUrl = '';\nif (robotsTxt) {\n  const sm = robotsTxt.match(/Sitemap:\\s*(https?:\\/\\/[^\\s]+)/i);\n  if (sm) customSitemapUrl = sm[1].trim();\n}\n\n// Step 2: Try sitemap paths in order\nconst sitemapPaths = [\n  customSitemapUrl,\n  baseUrl + '/sitemap.xml',\n  baseUrl + '/sitemap_index.xml',\n  baseUrl + '/wp-sitemap.xml',\n  baseUrl + '/site-map.xml',\n  baseUrl + '/sitemap.json',\n].filter(Boolean);\n\n// Add path-prefix sitemaps (e.g. sgfleet.com/au -> /au/sitemap/sitemap.xml)\ntry {\n  const urlObj = new URL(baseUrl);\n  const pathParts = urlObj.pathname.split('/').filter(Boolean);\n  if (pathParts.length > 0) {\n    sitemapPaths.push(urlObj.origin + '/' + pathParts[0] + '/sitemap/sitemap.xml');\n  }\n  sitemapPaths.push(urlObj.origin + '/sitemap/sitemap.xml');\n} catch(e) {}\n\nfor (const smUrl of sitemapPaths) {\n  if (sitemapUrls.length > 5) break;\n  const content = await safeFetch(smUrl);\n  if (!content) continue;\n\n  // Check if it's actual XML with <loc> tags (not HTML disguised as 200)\n  if (content.includes('<loc>')) {\n    const locs = extractLocs(content);\n    // Filter out junk pages\n    const useful = locs.filter(u => !u.includes('/404') && !u.includes('/search-results') && !u.includes('/disclaimer'));\n    if (useful.length > 5) {\n      sitemapUrls = useful;\n      sitemapSource = smUrl;\n      break;\n    }\n  }\n\n  // Check for sitemap index (contains links to other sitemaps)\n  if (content.includes('<sitemap>')) {\n    const subSitemaps = extractLocs(content);\n    for (const sub of subSitemaps.slice(0, 3)) {\n      const subContent = await safeFetch(sub);\n      if (subContent) {\n        const subLocs = extractLocs(subContent);\n        sitemapUrls.push(...subLocs);\n      }\n    }\n    if (sitemapUrls.length > 5) {\n      sitemapSource = smUrl + ' (index)';\n      break;\n    }\n  }\n\n  // Check for JSON sitemap\n  if (smUrl.endsWith('.json') && content.startsWith('{')) {\n    try {\n      const j = JSON.parse(content);\n      const jsonUrls = (j.urls || j.pages || []).map(u => typeof u === 'string' ? u : u.url || u.loc).filter(Boolean);\n      if (jsonUrls.length > 5) {\n        sitemapUrls = jsonUrls;\n        sitemapSource = smUrl;\n        break;\n      }\n    } catch(e) {}\n  }\n}\n\n// Combine: sitemap URLs + Firecrawl /map URLs (deduped)\nconst allLinks = [...new Set([...sitemapUrls, ...mapLinks])];\n\n// Priority patterns for picking best pages\nconst priorityPatterns = [/about/i, /team/i, /product/i, /service/i, /career/i, /what-we-do/i, /our-story/i, /innovation/i, /solution/i, /fleet/i, /commitment/i, /sustainability/i, /esg/i];\n\nconst urls = [baseUrl];\n\n// First pass: priority pages\nfor (const link of allLinks) {\n  if (urls.length >= 8) break;\n  const isHome = link === baseUrl || link === baseUrl + '/';\n  const isPriority = priorityPatterns.some(p => p.test(link));\n  if (!isHome && isPriority && !urls.includes(link) && !link.endsWith('.pdf')) {\n    urls.push(link);\n  }\n}\n\n// Second pass: fill up to 5 minimum\nif (urls.length < 5) {\n  for (const link of allLinks) {\n    if (urls.length >= 5) break;\n    if (!urls.includes(link) && !link.endsWith('.pdf') && !link.includes('/404')) {\n      urls.push(link);\n    }\n  }\n}\n\nreturn [{ json: {\n  scrape_urls: urls,\n  sitemap_source: sitemapSource,\n  sitemap_urls_found: sitemapUrls.length,\n  map_urls_found: mapLinks.length,\n  total_discovered: allLinks.length\n} }];"
       },
-      "id": "54551acf-3167-4272-9b4d-7e0aa861a497",
-      "name": "Read Discovered Jobs",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.5,
-      "position": [
-        -1200,
-        80
-      ],
-      "credentials": {
-        "googleApi": {
-          "id": "1EPATbG9UgFp0Cvm",
-          "name": "Google Service Account account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const job = $json;\nreturn [{ json: { ...job, scrape_url: job.job_url || '' } }];"
-      },
-      "id": "ec5e94a4-1d12-4d32-a769-c86632db9d7a",
-      "name": "Prepare Job Scrape",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -960,
-        80
+        9040,
+        3856
+      ],
+      "id": "0478e3af-3525-412c-880c-fb7c3966d662",
+      "name": "Pick Top Pages"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json;\nconst urls = input.scrape_urls || [];\nconst apiKey = 'fc-2357a08dfb754e50a94dfe4c1d15d2ca';\nlet combinedMarkdown = '';\n\nfor (const url of urls) {\n  try {\n    const resp = await fetch('https://api.firecrawl.dev/v1/scrape', {\n      method: 'POST',\n      headers: {\n        'Authorization': 'Bearer ' + apiKey,\n        'Content-Type': 'application/json'\n      },\n      body: JSON.stringify({ url, formats: ['markdown'], onlyMainContent: true })\n    });\n    const data = await resp.json();\n    const md = data.data?.markdown || '';\n    if (md) {\n      combinedMarkdown += '\\n\\n--- PAGE: ' + url + ' ---\\n\\n' + md.slice(0, 3000);\n    }\n  } catch (e) {}\n}\n\nreturn [{ json: {\n  ...input,\n  data: { markdown: combinedMarkdown.slice(0, 12000) }\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9232,
+        3856
+      ],
+      "id": "27c17012-b163-403e-8b68-6e1a6d65710f",
+      "name": "Scrape and Combine Pages"
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Prepare Job Scrape').item.json;\nconst scrapeResult = $('Firecrawl Scrape Job Page').item.json;\nconst fullDescription = scrapeResult.data?.markdown || job.description || '';\n\nconst excludedDomains = [\n  'seek.com', 'seek.com.au', 'au.seek.com',\n  'linkedin.com', 'indeed.com', 'glassdoor.com',\n  'jora.com', 'adzuna.com', 'careerone.com',\n  'ethicaljobs.com.au', 'google.com', 'googleapis.com',\n  'gstatic.com', 'facebook.com', 'twitter.com',\n  'cdn.seeklearning.com.au', 'help.au.seek.com'\n];\nconst urlRegex = /https?:\\/\\/(?:www\\.)?([a-zA-Z0-9.-]+\\.[a-z]{2,})/gi;\nlet match;\nlet companyWebsite = '';\nwhile ((match = urlRegex.exec(fullDescription)) !== null) {\n  const domain = match[1].toLowerCase();\n  const isExcluded = excludedDomains.some(ex => domain === ex || domain.endsWith('.' + ex));\n  if (!isExcluded) {\n    companyWebsite = match[0].split(/[)\\s]/)[0];\n    break;\n  }\n}\n\nreturn [{ json: {\n  ...job,\n  description: fullDescription.slice(0, 10000),\n  company_website: companyWebsite || job.company_website || '',\n  status: 'enrichment_pending'\n} }];\n"
+      },
+      "id": "8536da6c-42f7-4498-b45e-d67a4191e94c",
+      "name": "Extract Full Description",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8144,
+        4128
       ]
     },
     {
@@ -59,18 +59,18 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"url\": \"{{$json.scrape_url}}\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true\n}",
+        "jsonBody": "={\n  \"url\": \"{{$json.scrape_url}}\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true,\n  \"waitFor\": 5000\n}",
         "options": {
           "timeout": 30000
         }
       },
-      "id": "9a33f44b-5676-4d64-a8a4-2fda3f1c4b07",
+      "id": "56a62c61-9865-44bc-8736-5ad1b6edcd14",
       "name": "Firecrawl Scrape Job Page",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -720,
-        80
+        7904,
+        4128
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -93,13 +93,13 @@
           "timeout": 30000
         }
       },
-      "id": "c462d1d2-06e9-4e10-a218-8d731bb8f9c0",
+      "id": "af83add4-4ba5-4da8-a1b5-966906ec22c7",
       "name": "Firecrawl Screenshot Job Page",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -720,
-        304
+        7904,
+        4352
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -108,108 +108,6 @@
         }
       },
       "onError": "continueErrorOutput"
-    },
-    {
-      "parameters": {
-        "jsCode": "const job = $('Prepare Job Scrape').item.json;\nconst scrapeResult = $('Firecrawl Scrape Job Page').item.json;\nconst fullDescription = scrapeResult.data?.markdown || job.description || '';\n\nconst urlMatch = fullDescription.match(/(?:https?:\\/\\/)?(?:www\\.)?([a-zA-Z0-9-]+\\.(?:com|com\\.au|io|co|org|net|ai))/i);\nconst companyWebsite = urlMatch ? `https://www.${urlMatch[1]}` : '';\n\n// Get screenshot base64 if available\nconst screenshotResult = $('Firecrawl Screenshot Job Page').item.json;\nconst screenshotBase64 = screenshotResult.data?.screenshot || '';\n\nreturn [{ json: {\n  ...job,\n  description: fullDescription.slice(0, 10000),\n  company_website: companyWebsite || job.company_website || '',\n  screenshot_base64: screenshotBase64,\n  status: 'enrichment_pending'\n} }];"
-      },
-      "id": "faa69b0d-5739-4077-b31f-bb5ddfbf1b64",
-      "name": "Extract Full Description",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -480,
-        80
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "leftValue": "={{$json.screenshot_base64}}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty"
-              },
-              "id": "has-screenshot"
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "9e8f7a2e-1bbc-4ac3-b45c-d235df489620",
-      "name": "Has Screenshot?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -240,
-        304
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const job = $json;\nconst base64 = job.screenshot_base64;\n\n// Build filename matching naming convention\nconst now = new Date();\nconst day = String(now.getDate()).padStart(2, '0');\nconst months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\nconst mon = months[now.getMonth()];\nconst yr = String(now.getFullYear()).slice(-2);\nconst dateStr = `${day}_${mon}_${yr}`;\nconst searchKw = (job.search_keywords || job.title || '').replace(/[^a-zA-Z0-9]/g, '_');\nconst company = (job.company_name || '').replace(/[^a-zA-Z0-9]/g, '_');\nconst title = (job.title || '').replace(/[^a-zA-Z0-9]/g, '_');\nconst location = (job.location || 'Sydney').replace(/[^a-zA-Z0-9]/g, '_');\nconst fileName = `Ashok_Mulchandani_${searchKw}_${dateStr}_JD_screenshot_${company}_${title}_${location}.png`;\n\nreturn [{\n  json: { ...job, file_name: fileName },\n  binary: {\n    data: {\n      data: base64.replace(/^data:image\\/\\w+;base64,/, ''),\n      mimeType: 'image/png',\n      fileName: fileName\n    }\n  }\n}];\n"
-      },
-      "id": "7a50eb62-f084-41d5-979e-a0e70bf2cc99",
-      "name": "Prepare Screenshot Binary",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        0,
-        224
-      ]
-    },
-    {
-      "parameters": {
-        "name": "={{$json.file_name}}",
-        "driveId": {
-          "__rl": true,
-          "mode": "list",
-          "value": "My Drive"
-        },
-        "folderId": {
-          "__rl": true,
-          "value": "=1sen-9CXBmjT63w4L3ypWN2dHFB8p_j93",
-          "mode": "id"
-        },
-        "options": {}
-      },
-      "id": "f0d8a84a-625b-484c-8455-7fd9b5eadcc6",
-      "name": "Upload Screenshot to Drive",
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
-      "position": [
-        240,
-        224
-      ],
-      "credentials": {
-        "googleDriveOAuth2Api": {
-          "id": "SMbQovwtw9fzGPf2",
-          "name": "Google Drive account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const job = $('Extract Full Description').item.json;\nconst driveFile = $json;\nconst pdfUrl = driveFile.webViewLink || driveFile.webContentLink || '';\nreturn [{ json: { ...job, job_pdf_url: pdfUrl, screenshot_base64: '' } }];"
-      },
-      "id": "ec5503bb-99a1-4ff6-aa43-998ede76682a",
-      "name": "Set PDF URL",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        480,
-        224
-      ]
     },
     {
       "parameters": {
@@ -235,35 +133,68 @@
         },
         "options": {}
       },
-      "id": "bb571eda-9358-46ab-910c-b5f5eb587036",
+      "id": "c09c5f3b-e16c-437b-867f-6d76da608fea",
       "name": "Has Company Website?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -240,
-        80
+        8432,
+        4128
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.data.screenshot}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "has-screenshot"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4aaa7a22-02bc-4b4a-a052-598adb2ea1e0",
+      "name": "Has Screenshot?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        8400,
+        4480
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.firecrawl.dev/v1/scrape",
+        "url": "https://api.firecrawl.dev/v1/map",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"url\": \"{{$json.company_website}}\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true\n}",
+        "jsonBody": "={\n  \"url\": \"{{$json.company_website}}\",\n  \"search\": \"about company products services careers\",\n  \"limit\": 5\n}\n",
         "options": {
           "timeout": 30000
         }
       },
-      "id": "5784789b-e674-4726-a539-86e2d879ab01",
+      "id": "a5ce6da6-ce9a-4595-b215-47a1381032c4",
       "name": "Firecrawl Scrape Company",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        0,
-        0
+        8848,
+        3856
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -275,22 +206,35 @@
     },
     {
       "parameters": {
+        "jsCode": "const job = $('Extract Full Description').item.json;\nconst companyMarkdown = $json.data?.markdown || 'No website content available';\n\nfunction clean(str) {\n  return (str || '').replace(/[\\x00-\\x1f\\x7f]/g, ' ').replace(/\\s+/g, ' ').trim();\n}\n\nconst body = {\n  messages: [\n    {\n      role: \"system\",\n      content: \"You extract concise company research for job application tailoring. Return JSON only with: company_summary (2-3 sentences), products (array), customers (array), values (array), technical_signals (array of tech/tools mentioned), hiring_signals (array), keywords (array of important terms for resume tailoring).\"\n    },\n    {\n      role: \"user\",\n      content: \"Company: \" + clean(job.company_name) + \" Job Title: \" + clean(job.title) + \" Company Website Content: \" + clean(companyMarkdown).slice(0, 4000) + \" Job Description: \" + clean(job.description).slice(0, 3000)\n    }\n  ],\n  response_format: { type: \"json_object\" },\n  max_tokens: 1000\n};\n\nreturn [{ json: { body_string: JSON.stringify(body) } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9472,
+        3856
+      ],
+      "id": "eaf01f6d-fc66-4e59-8efb-6ece84220aea",
+      "name": "Prepare Azure Request"
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "=https://testashok1.openai.azure.com/openai/deployments/Test-Ashok-1-gpt-4o/chat/completions?api-version=2024-02-01",
+        "url": "=https://testashok1.openai.azure.com/openai/deployments/testashok1-gpt-4o-mini/chat/completions?api-version=2024-02-01",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You extract concise company research for job application tailoring. Return JSON only with: company_summary (2-3 sentences), products (array), customers (array), values (array), technical_signals (array of tech/tools mentioned), hiring_signals (array), keywords (array of important terms for resume tailoring).\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Company: {{$('Extract Full Description').item.json.company_name}}\\n\\nJob Title: {{$('Extract Full Description').item.json.title}}\\n\\nCompany Website Content:\\n{{$json.data?.markdown ? $json.data.markdown.slice(0, 4000) : 'No website content available'}}\\n\\nJob Description:\\n{{$('Extract Full Description').item.json.description.slice(0, 3000)}}\"\n    }\n  ],\n  \"response_format\": { \"type\": \"json_object\" },\n  \"max_tokens\": 1000\n}",
+        "jsonBody": "={{ $json.body_string }}",
         "options": {}
       },
-      "id": "4eae7ffc-731e-4bee-8831-b91189f379d6",
+      "id": "96c7aa96-0465-4733-97f9-342f637861c6",
       "name": "Azure OpenAI Company Summary",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        240,
-        0
+        9824,
+        4048
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -301,28 +245,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const job = $('Extract Full Description').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet company;\ntry { company = JSON.parse(raw); } catch (e) { company = { parse_error: true, raw: raw.slice(0, 500) }; }\n\n// Check if we have a PDF URL from the screenshot path\nconst pdfUrl = job.job_pdf_url || '';\n\nreturn [{ json: {\n  ...job,\n  company_summary: company.company_summary || JSON.stringify(company).slice(0, 500),\n  company_research: company,\n  job_pdf_url: pdfUrl,\n  screenshot_base64: '',\n  status: 'enriched',\n  updated_at: new Date().toISOString()\n} }];"
+        "jsCode": "const job = $('Extract Full Description').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet company;\ntry { company = JSON.parse(raw); } catch (e) { company = { parse_error: true, raw: raw.slice(0, 500) }; }\n\nconst pdfUrl = job.job_pdf_url || '';\n\nlet scrapeInput = {};\ntry { scrapeInput = $('Scrape and Combine Pages').item.json || {}; } catch(e) {}\n\ncompany.scraped_urls = scrapeInput.scrape_urls || [];\ncompany.discovery = {\n  sitemap_source: scrapeInput.sitemap_source || 'none',\n  sitemap_urls_found: scrapeInput.sitemap_urls_found || 0,\n  map_urls_found: scrapeInput.map_urls_found || 0,\n  total_discovered: scrapeInput.total_discovered || 0,\n  pages_scraped: (scrapeInput.scrape_urls || []).length\n};\n\nreturn [{ json: {\n  ...job,\n  company_summary: company.company_summary || JSON.stringify(company).slice(0, 500),\n  company_research: JSON.stringify(company),\n  job_pdf_url: pdfUrl,\n  status: 'enriched',\n  updated_at: new Date().toISOString()\n} }];\n"
       },
-      "id": "dd4f16a1-2f8f-4852-bf8c-09ab7728a2ca",
+      "id": "729da10e-8bb7-4a78-b4be-54a13292b36b",
       "name": "Parse Company Summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        480,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const job = $('Extract Full Description').item.json;\nreturn [{ json: {\n  ...job,\n  company_summary: 'No company website found - using job description only',\n  company_research: {},\n  screenshot_base64: '',\n  status: 'enriched',\n  updated_at: new Date().toISOString()\n} }];"
-      },
-      "id": "5491e54e-f93e-426d-bd22-5a1b3d8c3f78",
-      "name": "Skip Company Enrichment",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        0,
-        448
+        10032,
+        4032
       ]
     },
     {
@@ -331,15 +262,346 @@
         "operation": "appendOrUpdate",
         "documentId": {
           "__rl": true,
-          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE",
-          "mode": ""
+          "mode": "id",
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE"
         },
-        "sheetName": "Jobs",
+        "sheetName": {
+          "__rl": true,
+          "value": "Jobs",
+          "mode": "name"
+        },
         "columns": {
           "mappingMode": "autoMapInputData",
           "value": {},
-          "matchingColumns": [],
-          "schema": [],
+          "matchingColumns": [
+            "job_id"
+          ],
+          "schema": [
+            {
+              "id": "serial_no",
+              "displayName": "serial_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_id",
+              "displayName": "job_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_url_hash",
+              "displayName": "job_url_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_url",
+              "displayName": "job_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_url",
+              "displayName": "company_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_website",
+              "displayName": "company_website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "remote_policy",
+              "displayName": "remote_policy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salary",
+              "displayName": "salary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contract_type",
+              "displayName": "contract_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "posted_at",
+              "displayName": "posted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apply_url",
+              "displayName": "apply_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "search_keywords",
+              "displayName": "search_keywords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_score",
+              "displayName": "fit_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_decision",
+              "displayName": "fit_decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_rationale",
+              "displayName": "fit_rationale",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "matched_requirements",
+              "displayName": "matched_requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "missing_requirements",
+              "displayName": "missing_requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_summary",
+              "displayName": "company_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_research",
+              "displayName": "company_research",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_markdown",
+              "displayName": "resume_markdown",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_html",
+              "displayName": "resume_html",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_doc_url",
+              "displayName": "resume_doc_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_pdf_url",
+              "displayName": "job_pdf_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "applied_at",
+              "displayName": "applied_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error",
+              "displayName": "error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "scrape_url",
+              "displayName": "scrape_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "screenshot_base64",
+              "displayName": "screenshot_base64",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
@@ -347,13 +609,13 @@
           "cellFormat": "USER_ENTERED"
         }
       },
-      "id": "e49a08b0-c89b-4c9b-b497-27f36dfc5a56",
+      "id": "53dd485d-a613-45d8-8b45-cc892aa066ec",
       "name": "Update Job Row",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        720,
-        80
+        10512,
+        4112
       ],
       "credentials": {
         "googleApi": {
@@ -361,6 +623,239 @@
           "name": "Google Service Account account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const driveFile = $json;\nconst pdfUrl = driveFile.webViewLink || driveFile.webContentLink || '';\nconst hyperlink = pdfUrl ? '=HYPERLINK(\"' + pdfUrl + '\",\"View Screenshot\")' : '';\nreturn [{ json: { job_pdf_url: hyperlink } }];"
+      },
+      "id": "168a7f9a-43a7-4d0c-b148-ebafa95be456",
+      "name": "Set PDF URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        10064,
+        4256
+      ]
+    },
+    {
+      "parameters": {
+        "name": "={{$('Prepare Screenshot Binary').item.json.file_name}}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "=1sen-9CXBmjT63w4L3ypWN2dHFB8p_j93",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "9e324c5b-7222-46a6-81df-385954ea2405",
+      "name": "Upload Screenshot to Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        9824,
+        4256
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "SMbQovwtw9fzGPf2",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{$json.screenshot_url}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "9c0f2e4e-7804-45f5-9c64-b98fd496f778",
+      "name": "Download Screenshot PNG",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        9584,
+        4256
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json;\nconst screenshotUrl = input.data?.screenshot || '';\n\n// Job data comes from input item (passed through Has Screenshot?)\n// We need to get job info from the item - build filename from what we have\nconst now = new Date();\nconst day = String(now.getDate()).padStart(2, '0');\nconst months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\nconst mon = months[now.getMonth()];\nconst yr = String(now.getFullYear()).slice(-2);\nconst dateStr = `${day}_${mon}_${yr}`;\n\n// Use metadata from Firecrawl response or generic fallback\nconst pageTitle = input.data?.metadata?.title || 'job';\nconst cleanTitle = pageTitle.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 60);\nconst fileName = `Ashok_Mulchandani_${dateStr}_JD_screenshot_${cleanTitle}.png`;\n\nreturn [{ json: { file_name: fileName, screenshot_url: screenshotUrl } }];"
+      },
+      "id": "abbf92c9-9f9a-41e8-b584-b576f142aaf5",
+      "name": "Prepare Screenshot Binary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9344,
+        4256
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Extract Full Description').item.json;\nreturn [{ json: {\n  ...job,\n  company_summary: 'No company website found - using job description only',\n  company_research: JSON.stringify({}),\n  status: 'enriched',\n  updated_at: new Date().toISOString()\n} }];\n"
+      },
+      "id": "b094720a-3cd4-4ee4-a70f-64e90901121c",
+      "name": "Skip Company Enrichment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9344,
+        4480
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "=1jkunkarVZDbhpy11G9ajWle7Ip-rYMCof5uWahzVXsE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Jobs",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "b1ee9f09-97ca-49eb-a61d-994cde69c1d6",
+      "name": "Read Discovered Jobs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        7264,
+        4112
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "1EPATbG9UgFp0Cvm",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"https://duckduckgo.com/?q={{encodeURIComponent($json.company_name + ' official website')}}&num=5\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "6ea00735-cdd1-4311-aea4-1c1344f15634",
+      "name": "Google Company Website",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        8672,
+        4240
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "rBgY4HYcYC151dgK",
+          "name": "Firecrawl API Key-Latest-03May26"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Extract Full Description').item.json;\nconst googleMarkdown = $json.data?.markdown || '';\n\nconst excludedDomains = [\n  'seek.com', 'seek.com.au', 'au.seek.com',\n  'linkedin.com', 'indeed.com', 'glassdoor.com',\n  'jora.com', 'adzuna.com', 'careerone.com',\n  'ethicaljobs.com.au', 'google.com', 'googleapis.com',\n  'gstatic.com', 'facebook.com', 'twitter.com', 'x.com',\n  'youtube.com', 'wikipedia.org', 'reddit.com',\n  'duckduckgo.com', 'external-content.duckduckgo.com', 'bing.com',\n  'cdn.seeklearning.com.au', 'help.au.seek.com'\n];\n\nconst urlRegex = /https?:\\/\\/(?:www\\.)?([a-zA-Z0-9.-]+\\.[a-z]{2,})/gi;\nlet match;\nlet companyWebsite = '';\nwhile ((match = urlRegex.exec(googleMarkdown)) !== null) {\n  const domain = match[1].toLowerCase();\n  const isExcluded = excludedDomains.some(ex => domain === ex || domain.endsWith('.' + ex));\n  if (!isExcluded) {\n    companyWebsite = 'https://' + domain;\n    break;\n  }\n}\n\nreturn [{ json: {\n  ...job,\n  company_website: companyWebsite\n} }];\n"
+      },
+      "id": "6e36d77f-2222-4018-be4e-0e2b06ad8dfe",
+      "name": "Extract Company URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8976,
+        4528
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.company_website}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "has-url-now"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1dc0cf5b-a94d-4bd1-9195-0427aa721a43",
+      "name": "Has URL Now?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        8928,
+        4096
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $('Read Discovered Jobs').all();\nconst target = items.filter(i => i.json.job_id === 'job_06d9a4b424ee');\nif (target.length === 0) throw new Error('Job not found');\nreturn target.map(i => ({ json: i.json }));\n"
+      },
+      "id": "3da931e1-5e81-416a-85ad-06e9a05c6be3",
+      "name": "Filter Target Job",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7568,
+        4000
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $('Read Discovered Jobs').all();\nconst discovered = items.filter(i => i.json.status === 'discovered');\nif (discovered.length === 0) throw new Error('No discovered jobs found');\nreturn discovered.map(i => ({ json: i.json }));\n"
+      },
+      "id": "bad83618-bc66-4144-83bc-16eba832d5df",
+      "name": "Filter Discovered Only",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7552,
+        4272
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $json;\nreturn [{ json: { ...job, scrape_url: job.job_url || job.apply_url || '' } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7712,
+        4128
+      ],
+      "id": "5c73a11d-d6e0-4e7c-a2fe-1c317ad4917c",
+      "name": "Prepare Job Scrape"
     }
   ],
   "pinData": {},
@@ -376,27 +871,33 @@
         ]
       ]
     },
-    "Read Discovered Jobs": {
+    "Pick Top Pages": {
       "main": [
         [
           {
-            "node": "Prepare Job Scrape",
+            "node": "Scrape and Combine Pages",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepare Job Scrape": {
+    "Scrape and Combine Pages": {
       "main": [
         [
           {
-            "node": "Firecrawl Scrape Job Page",
+            "node": "Prepare Azure Request",
             "type": "main",
             "index": 0
-          },
+          }
+        ]
+      ]
+    },
+    "Extract Full Description": {
+      "main": [
+        [
           {
-            "node": "Firecrawl Screenshot Job Page",
+            "node": "Has Company Website?",
             "type": "main",
             "index": 0
           }
@@ -432,11 +933,18 @@
         ]
       ]
     },
-    "Extract Full Description": {
+    "Has Company Website?": {
       "main": [
         [
           {
-            "node": "Has Company Website?",
+            "node": "Firecrawl Scrape Company",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Google Company Website",
             "type": "main",
             "index": 0
           }
@@ -454,51 +962,11 @@
         ]
       ]
     },
-    "Prepare Screenshot Binary": {
-      "main": [
-        [
-          {
-            "node": "Upload Screenshot to Drive",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Upload Screenshot to Drive": {
-      "main": [
-        [
-          {
-            "node": "Set PDF URL",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Has Company Website?": {
-      "main": [
-        [
-          {
-            "node": "Firecrawl Scrape Company",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Skip Company Enrichment",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Firecrawl Scrape Company": {
       "main": [
         [
           {
-            "node": "Azure OpenAI Company Summary",
+            "node": "Pick Top Pages",
             "type": "main",
             "index": 0
           }
@@ -506,6 +974,17 @@
         [
           {
             "node": "Skip Company Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Azure Request": {
+      "main": [
+        [
+          {
+            "node": "Azure OpenAI Company Summary",
             "type": "main",
             "index": 0
           }
@@ -534,6 +1013,50 @@
         ]
       ]
     },
+    "Set PDF URL": {
+      "main": [
+        [
+          {
+            "node": "Update Job Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Screenshot to Drive": {
+      "main": [
+        [
+          {
+            "node": "Set PDF URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Screenshot PNG": {
+      "main": [
+        [
+          {
+            "node": "Upload Screenshot to Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Screenshot Binary": {
+      "main": [
+        [
+          {
+            "node": "Download Screenshot PNG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Skip Company Enrichment": {
       "main": [
         [
@@ -545,11 +1068,85 @@
         ]
       ]
     },
-    "Set PDF URL": {
+    "Read Discovered Jobs": {
       "main": [
         [
           {
-            "node": "Update Job Row",
+            "node": "Filter Discovered Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Company Website": {
+      "main": [
+        [
+          {
+            "node": "Extract Company URL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Company Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Company URL": {
+      "main": [
+        [
+          {
+            "node": "Has URL Now?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has URL Now?": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl Scrape Company",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Company Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Discovered Only": {
+      "main": [
+        [
+          {
+            "node": "Prepare Job Scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Job Scrape": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl Scrape Job Page",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Firecrawl Screenshot Job Page",
             "type": "main",
             "index": 0
           }
@@ -562,7 +1159,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "fb7543a4-39e8-4f98-bedd-495ddd81cee6",
+  "versionId": "feaac969-cd82-4e4d-9f93-e3ffa34205f1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
