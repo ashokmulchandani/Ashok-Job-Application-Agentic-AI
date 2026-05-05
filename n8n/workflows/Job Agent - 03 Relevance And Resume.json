@@ -14,7 +14,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $('Read Enriched Jobs').all();\nconst enriched = items.filter(i => i.json.status === 'enriched');\nif (enriched.length === 0) throw new Error('No enriched jobs found');\nreturn enriched.map(i => ({ json: i.json }));\n"
+        "jsCode": "const items = $('Read Enriched Jobs').all();\nconst enriched = items.filter(i => (i.json.status || '').trim().toLowerCase() === 'enriched');\nif (enriched.length === 0) throw new Error('No enriched jobs found');\nreturn enriched.slice(0, 5).map(i => ({ json: i.json }));\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

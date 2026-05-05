@@ -833,7 +833,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $('Read Discovered Jobs').all();\nconst discovered = items.filter(i => i.json.status === 'discovered');\nif (discovered.length === 0) throw new Error('No discovered jobs found');\nreturn discovered.map(i => ({ json: i.json }));\n"
+        "jsCode": "const items = $('Read Discovered Jobs').all();\nconst discovered = items.filter(i => (i.json.status || '').trim().toLowerCase() === 'discovered');\nif (discovered.length === 0) throw new Error('No discovered jobs found');\nreturn discovered.slice(0, 5).map(i => ({ json: i.json }));\n"
       },
       "id": "bad83618-bc66-4144-83bc-16eba832d5df",
       "name": "Filter Discovered Only",
