@@ -87,7 +87,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const job = $('Filter Enriched Only').item.json;\nconst allRows = $('Read Master Resume').all().map(i => i.json);\n\n// Filter to only actual resume rows (have 'section' field, not job rows leaking through)\nconst resumeRows = allRows.filter(r => r.section && r.section.trim());\n\n// Deduplicate by section name (in case of pipeline data duplication)\nconst seen = new Set();\nconst uniqueRows = resumeRows.filter(r => {\n  const key = r.section.trim();\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\n\nconst skipSections = new Set(['role_to_resume_mapping']);\nconst masterResume = uniqueRows\n  .filter(r => !skipSections.has(r.section) && (r.content || '').trim())\n  .map(r => (r.section || '').toUpperCase() + ':\\n' + (r.content || ''))\n  .join('\\n\\n');\n\nif (masterResume.length < 100) throw new Error('Resume content too short (' + masterResume.length + ' chars). Check Master Resume tab.');\n\nlet companyResearch = job.company_research || '';\nif (typeof companyResearch === 'string' && companyResearch.startsWith('{')) {\n  try { companyResearch = JSON.parse(companyResearch); } catch(e) {}\n}\n\nreturn [{ json: {\n  ...job,\n  company_research: companyResearch,\n  master_resume: masterResume.slice(0, 15000),\n  selected_resume_type: 'unified'\n} }];\n"
+        "jsCode": "const job = $('Filter Enriched Only').item.json;\nconst allRows = $('Read Master Resume').all().map(i => i.json);\n\n// Get full data from Supabase\nlet supabaseData = {};\ntry {\n  const supaResult = $('Fetch from Supabase').item.json;\n  // Supabase returns array, get first item\n  const record = Array.isArray(supaResult) ? supaResult[0] : supaResult;\n  if (record && record.metadata) {\n    supabaseData = typeof record.metadata === 'string' ? JSON.parse(record.metadata) : record.metadata;\n  }\n} catch(e) {}\n\n// Use Supabase description if available, fallback to Sheet\nconst description = supabaseData.description || job.description || '';\n\n// Use Supabase company_research if available, fallback to Sheet\nlet companyResearch = supabaseData.company_research || job.company_research || '';\nif (typeof companyResearch === 'string' && companyResearch.startsWith('{')) {\n  try { companyResearch = JSON.parse(companyResearch); } catch(e) {}\n}\n\n// Build master resume\nconst resumeRows = allRows.filter(r => r.section && r.section.trim());\nconst seen = new Set();\nconst uniqueRows = resumeRows.filter(r => {\n  const key = r.section.trim();\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\nconst skipSections = new Set(['role_to_resume_mapping']);\nconst masterResume = uniqueRows\n  .filter(r => !skipSections.has(r.section) && (r.content || '').trim())\n  .map(r => (r.section || '').toUpperCase() + ':\\n' + (r.content || ''))\n  .join('\\n\\n');\n\nif (masterResume.length < 100) throw new Error('Resume content too short.');\n\nreturn [{ json: {\n  ...job,\n  description: description,\n  company_research: companyResearch,\n  master_resume: masterResume.slice(0, 15000),\n  selected_resume_type: 'unified'\n} }];\n"
       },
       "id": "a712e667-5b74-4e83-835b-463a5fead308",
       "name": "Prepare Fit Input",
@@ -284,6 +284,36 @@
       "id": "308a8ee8-b9fe-4f42-b8ae-06a53cf667a5",
       "name": "Prepare Resume Request",
       "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/job_applications?job_id=eq.{{$json.job_id}}&select=content,metadata",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1200,
+        688
+      ],
+      "id": "fetch-supa-001",
+      "name": "Fetch from Supabase",
+      "onError": "continueErrorOutput"
     }
   ],
   "pinData": {},
@@ -303,7 +333,7 @@
       "main": [
         [
           {
-            "node": "Prepare Fit Input",
+            "node": "Fetch from Supabase",
             "type": "main",
             "index": 0
           }
@@ -432,6 +462,17 @@
         [
           {
             "node": "Filter Enriched Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch from Supabase": {
+      "main": [
+        [
+          {
+            "node": "Prepare Fit Input",
             "type": "main",
             "index": 0
           }
