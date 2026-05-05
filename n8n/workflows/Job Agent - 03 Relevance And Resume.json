@@ -248,6 +248,19 @@
     },
     {
       "parameters": {
+        "jsCode": "// Supabase returns {} with return=minimal, so get data from Parse Resume\nconst job = $('Parse Resume').item.json;\nreturn [{ json: job }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        1632
+      ],
+      "id": "restore-data-001",
+      "name": "Restore Job Data"
+    },
+    {
+      "parameters": {
         "jsCode": "const job = $json;\nreturn [{ json: {\n  ...job,\n  status: job.fit.fit_score >= 65 ? 'needs_review' : 'rejected',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
       },
       "id": "ab962fd9-03e1-4b83-9c27-e744f36ca897",
@@ -471,11 +484,22 @@
       "main": [
         [
           {
-            "node": "Update Google Sheets",
+            "node": "Restore Job Data",
             "type": "main",
             "index": 0
           }
         ],
+        [
+          {
+            "node": "Restore Job Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Job Data": {
+      "main": [
         [
           {
             "node": "Update Google Sheets",
