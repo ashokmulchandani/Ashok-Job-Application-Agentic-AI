@@ -8,8 +8,8 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -1200,
-        1408
+        9552,
+        7920
       ]
     },
     {
@@ -19,10 +19,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        304,
-        1648
+        10480,
+        7552
       ],
-      "id": "ad9b5bd7-dd10-4096-bdb9-f92180c561e4",
+      "id": "212a6657-059c-4a1c-b22a-b10ce7d6b502",
       "name": "Filter Enriched Only"
     },
     {
@@ -40,13 +40,13 @@
         },
         "options": {}
       },
-      "id": "9b6c01ab-a9b6-4a84-bc64-0d33d7b42750",
+      "id": "c04d703b-4cf3-4f74-b6b7-3a4d3c63b112",
       "name": "Read Enriched Jobs",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        -208,
-        1728
+        9968,
+        7632
       ],
       "credentials": {
         "googleApi": {
@@ -70,13 +70,13 @@
         },
         "options": {}
       },
-      "id": "83443d1a-12ab-4da0-88f2-5d313b07df22",
+      "id": "49028056-ea86-4f74-9015-0bae2ef9f28d",
       "name": "Read Master Resume",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        80,
-        1680
+        10256,
+        7584
       ],
       "credentials": {
         "googleApi": {
@@ -89,13 +89,13 @@
       "parameters": {
         "jsCode": "const job = $('Filter Enriched Only').item.json;\nconst allRows = $('Read Master Resume').all().map(i => i.json);\n\n// Get full data from Supabase\nlet supabaseData = {};\ntry {\n  const supaResult = $('Fetch from Supabase').item.json;\n  // Supabase returns array, get first item\n  const record = Array.isArray(supaResult) ? supaResult[0] : supaResult;\n  if (record && record.metadata) {\n    supabaseData = typeof record.metadata === 'string' ? JSON.parse(record.metadata) : record.metadata;\n  }\n} catch(e) {}\n\n// Use Supabase description if available, fallback to Sheet\nconst description = supabaseData.description || job.description || '';\n\n// Use Supabase company_research if available, fallback to Sheet\nlet companyResearch = supabaseData.company_research || job.company_research || '';\nif (typeof companyResearch === 'string' && companyResearch.startsWith('{')) {\n  try { companyResearch = JSON.parse(companyResearch); } catch(e) {}\n}\n\n// Build master resume\nconst resumeRows = allRows.filter(r => r.section && r.section.trim());\nconst seen = new Set();\nconst uniqueRows = resumeRows.filter(r => {\n  const key = r.section.trim();\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\nconst skipSections = new Set(['role_to_resume_mapping']);\nconst masterResume = uniqueRows\n  .filter(r => !skipSections.has(r.section) && (r.content || '').trim())\n  .map(r => (r.section || '').toUpperCase() + ':\\n' + (r.content || ''))\n  .join('\\n\\n');\n\nif (masterResume.length < 100) throw new Error('Resume content too short.');\n\nreturn [{ json: {\n  ...job,\n  description: description,\n  company_research: companyResearch,\n  master_resume: masterResume.slice(0, 15000),\n  selected_resume_type: 'unified'\n} }];\n"
       },
-      "id": "a712e667-5b74-4e83-835b-463a5fead308",
+      "id": "6306913c-c08c-4393-8d89-cda974ee758e",
       "name": "Prepare Fit Input",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        528,
-        1632
+        10704,
+        7536
       ]
     },
     {
@@ -109,13 +109,13 @@
         "jsonBody": "={{ $json.body_string }}",
         "options": {}
       },
-      "id": "d605b8f8-9a00-44fc-adc5-454cba0cebfc",
+      "id": "3864153f-33a7-421e-8efa-f9a2330ff15d",
       "name": "Azure OpenAI Fit Score",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        768,
-        1632
+        10944,
+        7536
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -128,13 +128,13 @@
       "parameters": {
         "jsCode": "const job = $('Prepare Fit Input').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet fit;\ntry { fit = JSON.parse(raw); } catch (e) { fit = { fit_score: 0, decision: 'needs_review', parse_error: true }; }\nreturn [{ json: { ...job, fit } }];"
       },
-      "id": "e83d600c-5b11-4d8d-b15c-0c994867a022",
+      "id": "75083d0e-2b28-45b2-bb7d-d216a6cff2fc",
       "name": "Parse Fit Score",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1008,
-        1632
+        11184,
+        7536
       ]
     },
     {
@@ -157,13 +157,13 @@
         },
         "options": {}
       },
-      "id": "6014f3de-7a87-4f50-be55-a7e948b4acdd",
+      "id": "4a9e57c1-5e6d-49f2-ae95-b495aecce67f",
       "name": "Score >= 80?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1248,
-        1632
+        11424,
+        7536
       ]
     },
     {
@@ -177,13 +177,13 @@
         "jsonBody": "={{ $json.body_string }}",
         "options": {}
       },
-      "id": "137571a9-0092-49e3-ae1d-09f4c28662a5",
+      "id": "82a9f5c9-450e-4524-a000-61afdbf4af9b",
       "name": "Azure OpenAI Generate Resume",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1488,
-        1552
+        11664,
+        7456
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -196,23 +196,19 @@
       "parameters": {
         "jsCode": "const job = $('Parse Fit Score').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet resume;\ntry { resume = JSON.parse(raw); } catch (e) { resume = { parse_error: true, document_title: `Resume - ${job.title} - ${job.company_name}` }; }\nreturn [{ json: {\n  ...job,\n  resume_markdown: resume.resume_markdown || '',\n  resume_html: resume.resume_html || '',\n  tailoring_rationale: resume.tailoring_rationale || '',\n  status: 'needs_review',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
       },
-      "id": "a94a75f3-aa0c-40ce-9863-5df5686baab5",
+      "id": "29d8dc6f-817f-487d-9e83-0edf5879e845",
       "name": "Parse Resume",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1728,
-        1552
+        11904,
+        7456
       ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/rpc/upsert_job_application",
-        "authentication": "none",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ p_job_id: $json.job_id, p_title: $json.title, p_company_name: $json.company_name, p_location: $json.location || '', p_industry: '', p_status: $json.status, p_fit_score: $json.fit_score, p_content: '', p_metadata: { resume_markdown: $json.resume_markdown, resume_html: $json.resume_html, tailoring_rationale: $json.tailoring_rationale, fit_rationale: $json.fit_rationale, matched_requirements: $json.matched_requirements, missing_requirements: $json.missing_requirements }, p_embedding: null }) }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -234,15 +230,18 @@
             }
           ]
         },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_job_id: $json.job_id, p_title: $json.title, p_company_name: $json.company_name, p_location: $json.location || '', p_industry: '', p_status: $json.status, p_fit_score: $json.fit_score, p_content: '', p_metadata: { resume_markdown: $json.resume_markdown, resume_html: $json.resume_html, tailoring_rationale: $json.tailoring_rationale, fit_rationale: $json.fit_rationale, matched_requirements: $json.matched_requirements, missing_requirements: $json.missing_requirements }, p_embedding: null }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1968,
-        1552
+        12352,
+        7360
       ],
-      "id": "upsert-resume-supa-001",
+      "id": "5ecf3f70-bb24-41d7-becd-07c42f47350e",
       "name": "Upsert Resume to Supabase",
       "onError": "continueErrorOutput"
     },
@@ -253,23 +252,23 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2048,
-        1632
+        12240,
+        7808
       ],
-      "id": "restore-data-001",
+      "id": "acac93d9-b676-435a-956b-d5c42581fc49",
       "name": "Restore Job Data"
     },
     {
       "parameters": {
         "jsCode": "const job = $json;\nreturn [{ json: {\n  ...job,\n  status: job.fit.fit_score >= 65 ? 'needs_review' : 'rejected',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
       },
-      "id": "ab962fd9-03e1-4b83-9c27-e744f36ca897",
+      "id": "2b94ea90-3e85-4603-9ae4-76ceb3b8f78c",
       "name": "Score < 80 - No Resume",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1488,
-        1760
+        11664,
+        7664
       ]
     },
     {
@@ -298,13 +297,13 @@
         },
         "options": {}
       },
-      "id": "c88a10b2-93ba-41f0-86dc-89f97cfbd926",
+      "id": "9b892c86-9816-4a12-a602-efdbc5a71ab1",
       "name": "Update Google Sheets",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        2208,
-        1632
+        12544,
+        7600
       ],
       "credentials": {
         "googleApi": {
@@ -320,32 +319,30 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        320,
-        2240
+        10496,
+        8144
       ],
-      "id": "6f44890b-91e5-42ff-8673-55697695b2b0",
+      "id": "7b9a4570-3cc2-4bd1-8c94-77382851c461",
       "name": "Prepare Fit Request",
       "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "const job = $json;\nconst desc = (job.description || '').slice(0, 4000).replace(/[\\n\\r\\t]/g, ' ');\nconst resume = (job.master_resume || '').replace(/[\\n\\r\\t]/g, ' ');\nlet companyResearch = '';\nif (typeof job.company_research === 'object' && job.company_research) {\n  companyResearch = JSON.stringify(job.company_research).slice(0, 2000).replace(/[\\n\\r\\t]/g, ' ');\n} else if (typeof job.company_research === 'string') {\n  companyResearch = job.company_research.slice(0, 2000).replace(/[\\n\\r\\t]/g, ' ');\n}\n\nconst body = {\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are an expert resume writer. Create a tailored resume using ONLY truthful info from the master resume. The master resume has ALL 7+ employers - include all relevant ones as separate sections. Return strict JSON: job_id, document_title, resume_html, resume_markdown, tailoring_rationale, keywords_used (array), risks_or_gaps (array), sample_projects (array of 5 objects with title and description fields). HTML FORMATTING: font-family 'Google Sans Text', Arial, sans-serif; body 10pt; section headers 13pt bold; color #1B1C1D; line-height 114%; thin 1px solid #1B1C1D <hr> under name; bullets with disc markers; no images/scripts/external CSS. Structure: Name 16pt bold centered, <hr>, Contact centered, then PROFESSIONAL SUMMARY, KEY EXPERTISE, PROFESSIONAL EXPERIENCE (each employer separate with title|company|dates then bullet achievements), KEY ACHIEVEMENTS, EDUCATION & CERTIFICATIONS, TECHNICAL SKILLS, then RELEVANT PROJECT EXAMPLES section. Use company_research to reframe achievements with company-specific industry language. Do NOT fabricate employers, dates, titles, metrics, certifications. SAMPLE PROJECTS SECTION: After the main resume, add a section titled 'RELEVANT PROJECT EXAMPLES' containing exactly 5 project ideas. These are NOT from the candidate's resume - they are hypothetical but realistic AI/automation projects that would be highly relevant to the TARGET COMPANY's industry, products, and challenges. Each project MUST follow this exact format: Bold title on its own line, then 4-5 sentences in first person describing: (1) what I architected/built/engineered and the specific tools used (reference tools from the job description like Python, GCP, n8n, Azure OpenAI, LangGraph etc), (2) the technical approach with specific integration details (e.g. cross-referencing with vector embeddings, streaming real-time metrics), (3) the measurable outcome with specific metrics (percentages, dollar amounts, time savings), (4) the business impact explaining how this transformed operations or customer experience. Example format: 'AI-Driven Fraud Detection & Prevention - I architected an automated Fraud Detection Pipeline using n8n and Azure OpenAI to analyze call transcripts for social engineering patterns in real-time. By cross-referencing caller metadata with Pinecone vector embeddings of known fraud tactics, I improved detection speed by 15%. This system balanced a frictionless customer experience with rigorous security protocols, significantly de-risking contact centre operations.' Tailor all 5 project themes specifically to the target company's industry from company_research. Include in both resume_html (h2 section with each project as h3 title + p description) and sample_projects JSON array.\"\n    },\n    {\n      role: \"user\",\n      content: \"JOB ID: \" + job.job_id + \" JOB TITLE: \" + job.title + \" COMPANY: \" + job.company_name + \" JOB DESCRIPTION: \" + desc + \" COMPANY RESEARCH: \" + companyResearch + \" FIT: Score=\" + job.fit.fit_score + \" Matched=\" + JSON.stringify(job.fit.matched_requirements || []) + \" Missing=\" + JSON.stringify(job.fit.missing_requirements || []) + \" MASTER RESUME (ALL employers): \" + resume\n    }\n  ],\n  response_format: { type: \"json_object\" },\n  max_tokens: 6000\n};\n\nreturn [{ json: { ...job, body_string: JSON.stringify(body) } }];\n"
+        "jsCode": "const job = $json;\nconst desc = (job.description || '').slice(0, 4000).replace(/[\\n\\r\\t]/g, ' ');\nconst resume = (job.master_resume || '').replace(/[\\n\\r\\t]/g, ' ');\nlet companyResearch = '';\nif (typeof job.company_research === 'object' && job.company_research) {\n  companyResearch = JSON.stringify(job.company_research).slice(0, 2000).replace(/[\\n\\r\\t]/g, ' ');\n} else if (typeof job.company_research === 'string') {\n  companyResearch = job.company_research.slice(0, 2000).replace(/[\\n\\r\\t]/g, ' ');\n}\n\nconst body = {\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are an expert resume writer. Create a tailored resume using ONLY truthful info from the master resume. The master resume has ALL 7+ employers - include all relevant ones as separate sections. Return strict JSON: job_id, document_title, resume_html, resume_markdown, tailoring_rationale, keywords_used (array), risks_or_gaps (array), sample_projects (array of 5 objects with title and description fields). HTML FORMATTING: font-family 'Google Sans Text', Arial, sans-serif; body 10pt; section headers 13pt bold; color #1B1C1D; line-height 114%; thin 1px solid #1B1C1D <hr> under name; bullets with disc markers; no images/scripts/external CSS. Structure: Name 16pt bold centered, <hr>, Contact centered, then PROFESSIONAL SUMMARY, KEY EXPERTISE, PROFESSIONAL EXPERIENCE (each employer separate with title|company|dates then bullet achievements), KEY ACHIEVEMENTS, EDUCATION & CERTIFICATIONS, TECHNICAL SKILLS, then RELEVANT PROJECT EXAMPLES section. Use company_research to reframe achievements with company-specific industry language. Do NOT fabricate employers, dates, titles, metrics, certifications. SAMPLE PROJECTS SECTION: After the main resume, add a section titled 'RELEVANT PROJECT EXAMPLES' containing exactly 5 project ideas. These are NOT from the candidate's resume - they are hypothetical but realistic AI/automation projects that would be highly relevant to the TARGET COMPANY's industry, products, and challenges. Each project MUST follow this exact format: Bold title on its own line, then 4-5 sentences in first person describing: (1) what I architected/built/engineered and the specific tools used (reference tools from the job description like Python, GCP, n8n, Azure OpenAI, LangGraph etc), (2) the technical approach with specific integration details (e.g. cross-referencing with vector embeddings, streaming real-time metrics), (3) the measurable outcome with specific metrics (percentages, dollar amounts, time savings), (4) the business impact explaining how this transformed operations or customer experience. Example format: 'AI-Driven Fraud Detection & Prevention - I architected an automated Fraud Detection Pipeline using n8n and Azure OpenAI to analyze call transcripts for social engineering patterns in real-time. By cross-referencing caller metadata with Pinecone vector embeddings of known fraud tactics, I improved detection speed by 15%. This system balanced a frictionless customer experience with rigorous security protocols, significantly de-risking contact centre operations.' Tailor all 5 project themes specifically to the target company's industry from company_research. Include in both resume_html (h2 section with each project as h3 title + p description) and sample_projects JSON array.\"\n    },\n    {\n      role: \"user\",\n      content: \"JOB ID: \" + job.job_id + \" JOB TITLE: \" + job.title + \" COMPANY: \" + job.company_name + \" JOB DESCRIPTION: \" + desc + \" COMPANY RESEARCH: \" + companyResearch + \" FIT: Score=\" + job.fit.fit_score + \" Matched=\" + JSON.stringify(job.fit.matched_requirements || []) + \" Missing=\" + JSON.stringify(job.fit.missing_requirements || []) + \" MASTER RESUME (ALL employers): \" + resume\n    }\n  ],\n  response_format: { type: \"json_object\" },\n  max_tokens: 8000\n};\n\nreturn [{ json: { ...job, body_string: JSON.stringify(body) } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1040,
-        2160
+        11216,
+        8064
       ],
-      "id": "308a8ee8-b9fe-4f42-b8ae-06a53cf667a5",
+      "id": "6913a08f-81ff-42ea-9738-52e52c3e9fc2",
       "name": "Prepare Resume Request",
       "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "=https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/job_applications?job_id=eq.{{$json.job_id}}&select=content,metadata",
-        "authentication": "none",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -364,10 +361,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -1200,
-        688
+        8976,
+        6592
       ],
-      "id": "fetch-supa-001",
+      "id": "99066fed-f4b1-485d-9381-463eeea649fb",
       "name": "Fetch from Supabase",
       "onError": "continueErrorOutput"
     }
@@ -568,9 +565,13 @@
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate"
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "ziidVNe46jymTRk2",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
   },
-  "versionId": "ce4fc47b-c8e7-4b59-a3f6-075eb60820ab",
+  "versionId": "5da0a242-b732-4135-bdb6-4862899431dd",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"

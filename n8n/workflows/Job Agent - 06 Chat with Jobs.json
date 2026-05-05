@@ -7,8 +7,11 @@
       },
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.1,
-      "position": [200, 400],
-      "id": "chat-trigger-001",
+      "position": [
+        0,
+        0
+      ],
+      "id": "4147982f-3860-45fc-9b18-77c964fd1bc2",
       "name": "When chat message received",
       "webhookId": "job-agent-chat"
     },
@@ -20,13 +23,16 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"input\": \"{{ $json.chatInput.replace(/[\\n\\r\\t]/g, ' ') }}\"\n}",
+        "jsonBody": "={{ $json.body_string }}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [440, 400],
-      "id": "embed-query-001",
+      "position": [
+        448,
+        0
+      ],
+      "id": "5e95e4d4-a3ef-4b39-8b63-076cd8db4250",
       "name": "Embed Query",
       "credentials": {
         "httpHeaderAuth": {
@@ -39,24 +45,35 @@
       "parameters": {
         "method": "POST",
         "url": "https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/rpc/match_job_applications",
-        "authentication": "none",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"},
-            {"name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"},
-            {"name": "Content-Type", "value": "application/json"}
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"query_embedding\": {{ JSON.stringify($json.data[0].embedding) }},\n  \"match_count\": 5,\n  \"filter\": {}\n}",
+        "jsonBody": "={{ JSON.stringify({ query_embedding: $json.data[0].embedding, match_count: 5, filter: {} }) }}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [680, 400],
-      "id": "search-supa-001",
+      "position": [
+        688,
+        0
+      ],
+      "id": "7abc0fb7-0612-47bd-abef-eb80da2b78b1",
       "name": "Search Supabase"
     },
     {
@@ -65,8 +82,11 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [920, 400],
-      "id": "build-prompt-001",
+      "position": [
+        928,
+        0
+      ],
+      "id": "305d20d1-fe90-4e5b-8185-e98b3350366b",
       "name": "Build Chat Prompt"
     },
     {
@@ -82,8 +102,11 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1160, 400],
-      "id": "azure-chat-001",
+      "position": [
+        1168,
+        0
+      ],
+      "id": "21984cf6-f545-4bcd-9ef9-d77d19634550",
       "name": "Azure OpenAI Chat",
       "credentials": {
         "httpHeaderAuth": {
@@ -98,46 +121,105 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1400, 400],
-      "id": "format-response-001",
+      "position": [
+        1408,
+        0
+      ],
+      "id": "fca12a70-034c-4e13-b76b-f83b98160091",
       "name": "Format Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = ($json.chatInput || '').replace(/[\\n\\r\\t]/g, ' ').trim();\nreturn [{ json: { body_string: JSON.stringify({ input }) } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "fb8156c0-3ed9-4020-9341-c54c98992bd0",
+      "name": "Prepare Embed Body"
     }
   ],
   "pinData": {},
   "connections": {
     "When chat message received": {
       "main": [
-        [{"node": "Embed Query", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Prepare Embed Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Embed Query": {
       "main": [
-        [{"node": "Search Supabase", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Search Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Search Supabase": {
       "main": [
-        [{"node": "Build Chat Prompt", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Build Chat Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Build Chat Prompt": {
       "main": [
-        [{"node": "Azure OpenAI Chat", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Azure OpenAI Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Azure OpenAI Chat": {
       "main": [
-        [{"node": "Format Response", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Embed Body": {
+      "main": [
+        [
+          {
+            "node": "Embed Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate"
   },
+  "versionId": "95aff3ab-bf83-42a0-a53c-7ca80134c1dc",
   "meta": {
-    "templateCredsSetupCompleted": true,
     "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
   },
+  "id": "6QMVUocxWf1gUycw",
   "tags": []
 }
