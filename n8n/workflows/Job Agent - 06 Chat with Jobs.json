@@ -1,0 +1,143 @@
+{
+  "name": "Job Agent - 06 Chat with Jobs",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 400],
+      "id": "chat-trigger-001",
+      "name": "When chat message received",
+      "webhookId": "job-agent-chat"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://testashok1.openai.azure.com/openai/deployments/testashok1-noble-oak-text-embedding-3-small/embeddings?api-version=2023-05-15",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"input\": \"{{ $json.chatInput.replace(/[\\n\\r\\t]/g, ' ') }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 400],
+      "id": "embed-query-001",
+      "name": "Embed Query",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jjUOHftcBqLwwjjm",
+          "name": "Azure OpenAI API Key-03May26"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/rpc/match_job_applications",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "apikey", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"},
+            {"name": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query_embedding\": {{ JSON.stringify($json.data[0].embedding) }},\n  \"match_count\": 5,\n  \"filter\": {}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 400],
+      "id": "search-supa-001",
+      "name": "Search Supabase"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $json;\nconst query = $('When chat message received').item.json.chatInput;\n\n// Build context from search results\nlet context = '';\nif (Array.isArray(results) && results.length > 0) {\n  context = results.map((r, i) => \n    `[Job ${i+1}] ${r.title} at ${r.company_name} (${r.location}) - Score: ${r.fit_score || 'N/A'}, Industry: ${r.industry}\\nContent: ${(r.content || '').slice(0, 1000)}`\n  ).join('\\n\\n');\n} else {\n  context = 'No matching jobs found in the database.';\n}\n\nconst body = {\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are a job search assistant for Ashok Mulchandani. You have access to a database of job applications, company research, and fit analyses. Answer questions using the provided job context. Be specific - mention company names, job titles, requirements, and scores. If asked about skill gaps, reference the missing_requirements from fit analyses. Context:\\n\\n\" + context\n    },\n    {\n      role: \"user\",\n      content: query\n    }\n  ],\n  max_tokens: 1500\n};\n\nreturn [{ json: { body_string: JSON.stringify(body), context_count: Array.isArray(results) ? results.length : 0 } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 400],
+      "id": "build-prompt-001",
+      "name": "Build Chat Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://testashok1.openai.azure.com/openai/deployments/Test-Ashok-1-gpt-4o/chat/completions?api-version=2025-01-01-preview",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body_string }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1160, 400],
+      "id": "azure-chat-001",
+      "name": "Azure OpenAI Chat",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jjUOHftcBqLwwjjm",
+          "name": "Azure OpenAI API Key-03May26"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $json.choices?.[0]?.message?.content || 'No response generated.';\nreturn [{ json: { output: response } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 400],
+      "id": "format-response-001",
+      "name": "Format Response"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [{"node": "Embed Query", "type": "main", "index": 0}]
+      ]
+    },
+    "Embed Query": {
+      "main": [
+        [{"node": "Search Supabase", "type": "main", "index": 0}]
+      ]
+    },
+    "Search Supabase": {
+      "main": [
+        [{"node": "Build Chat Prompt", "type": "main", "index": 0}]
+      ]
+    },
+    "Build Chat Prompt": {
+      "main": [
+        [{"node": "Azure OpenAI Chat", "type": "main", "index": 0}]
+      ]
+    },
+    "Azure OpenAI Chat": {
+      "main": [
+        [{"node": "Format Response", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
+  },
+  "tags": []
+}

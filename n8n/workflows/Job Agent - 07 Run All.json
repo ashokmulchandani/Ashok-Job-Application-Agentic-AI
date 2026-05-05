@@ -1,0 +1,125 @@
+{
+  "name": "Job Agent - 07 Run All",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 400],
+      "id": "manual-001",
+      "name": "Manual Trigger"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Mg50PmDYnfhIIDov",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [440, 400],
+      "id": "exec-wf01-001",
+      "name": "Run WF01 - Job Discovery"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "qYnihfBVOupMODr8",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [680, 400],
+      "id": "exec-wf02-001",
+      "name": "Run WF02 - Enrichment"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "nDJ8doqO7iuWCccU",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [920, 400],
+      "id": "exec-wf03-001",
+      "name": "Run WF03 - Score & Resume"
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date().toLocaleString('en-AU', { timeZone: 'Australia/Sydney' });\nreturn [{ json: { message: 'Pipeline complete', timestamp: now, workflows_run: ['WF01 Discovery', 'WF02 Enrichment', 'WF03 Score & Resume'] } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1160, 400],
+      "id": "summary-001",
+      "name": "Summary"
+    },
+    {
+      "parameters": {
+        "chatId": "1414560298",
+        "text": "=✅ *Job Agent Pipeline Complete*\n\n*Time:* {{ $json.timestamp }}\n*Workflows:* {{ $json.workflows_run.join(' → ') }}\n\nCheck Google Sheet for new scored jobs.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1400, 400],
+      "id": "notify-001",
+      "name": "Notify Telegram",
+      "credentials": {
+        "telegramApi": {
+          "id": "vZzbzI1YiyjFFiwz",
+          "name": "Telegram account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [{"node": "Run WF01 - Job Discovery", "type": "main", "index": 0}]
+      ]
+    },
+    "Run WF01 - Job Discovery": {
+      "main": [
+        [{"node": "Run WF02 - Enrichment", "type": "main", "index": 0}]
+      ]
+    },
+    "Run WF02 - Enrichment": {
+      "main": [
+        [{"node": "Run WF03 - Score & Resume", "type": "main", "index": 0}]
+      ]
+    },
+    "Run WF03 - Score & Resume": {
+      "main": [
+        [{"node": "Summary", "type": "main", "index": 0}]
+      ]
+    },
+    "Summary": {
+      "main": [
+        [{"node": "Notify Telegram", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
+  },
+  "tags": []
+}
