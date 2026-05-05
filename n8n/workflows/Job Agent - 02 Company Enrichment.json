@@ -856,6 +856,85 @@
       ],
       "id": "5c73a11d-d6e0-4e7c-a2fe-1c317ad4917c",
       "name": "Prepare Job Scrape"
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $json;\n\n// Combine key fields into a single text for embedding\nconst parts = [\n  'Job Title: ' + (job.title || ''),\n  'Company: ' + (job.company_name || ''),\n  'Location: ' + (job.location || ''),\n  'Description: ' + (job.description || '').slice(0, 3000),\n  'Company Summary: ' + (job.company_summary || ''),\n];\n\n// Parse company_research if it's a string\nlet research = job.company_research || '';\nif (typeof research === 'string' && research.startsWith('{')) {\n  try {\n    const parsed = JSON.parse(research);\n    parts.push('Products: ' + (parsed.products || []).join(', '));\n    parts.push('Values: ' + (parsed.values || []).join(', '));\n    parts.push('Technical Signals: ' + (parsed.technical_signals || []).join(', '));\n    parts.push('Keywords: ' + (parsed.keywords || []).join(', '));\n  } catch(e) {}\n}\n\nconst content = parts.filter(Boolean).join('\\n');\n\n// Detect industry from description/research\nconst text = content.toLowerCase();\nlet industry = 'General';\nif (text.includes('retail') || text.includes('e-commerce') || text.includes('shopping')) industry = 'Retail';\nelse if (text.includes('defence') || text.includes('navy') || text.includes('military')) industry = 'Defence';\nelse if (text.includes('health') || text.includes('medical') || text.includes('hospital')) industry = 'Healthcare';\nelse if (text.includes('manufacturing') || text.includes('factory')) industry = 'Manufacturing';\nelse if (text.includes('finance') || text.includes('banking') || text.includes('insurance')) industry = 'Finance';\nelse if (text.includes('government') || text.includes('council') || text.includes('procurement')) industry = 'Government';\nelse if (text.includes('logistics') || text.includes('supply chain') || text.includes('transport')) industry = 'Supply Chain';\n\nconst metadata = {\n  search_keywords: job.search_keywords || '',\n  job_url: job.job_url || '',\n  company_website: job.company_website || '',\n  contract_type: job.contract_type || '',\n  remote_policy: job.remote_policy || '',\n  enriched_at: job.updated_at || new Date().toISOString()\n};\n\nreturn [{ json: {\n  job_id: job.job_id,\n  title: job.title || '',\n  company_name: job.company_name || '',\n  location: job.location || '',\n  industry: industry,\n  status: job.status || 'enriched',\n  fit_score: null,\n  content: content.slice(0, 8000),\n  metadata: metadata\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4200,
+        896
+      ],
+      "id": "prep-vector-001",
+      "name": "Prepare Vector Data"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"input\": \"{{ $json.content.slice(0, 8000) }}\",\n  \"model\": \"text-embedding-3-small\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4400,
+        896
+      ],
+      "id": "gen-embed-001",
+      "name": "Generate Embedding",
+      "credentials": {
+        "openAiApi": {
+          "id": "xLd8O964eMQoABCe",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pmlyoptbhllllzngrxvn.supabase.co/rest/v1/rpc/upsert_job_application",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_job_id: $(\"Prepare Vector Data\").item.json.job_id, p_title: $(\"Prepare Vector Data\").item.json.title, p_company_name: $(\"Prepare Vector Data\").item.json.company_name, p_location: $(\"Prepare Vector Data\").item.json.location, p_industry: $(\"Prepare Vector Data\").item.json.industry, p_status: $(\"Prepare Vector Data\").item.json.status, p_fit_score: $(\"Prepare Vector Data\").item.json.fit_score, p_content: $(\"Prepare Vector Data\").item.json.content, p_metadata: $(\"Prepare Vector Data\").item.json.metadata, p_embedding: $json.data[0].embedding }) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtbHlvcHRiaGxsbGx6bmdyeHZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxOTAwMDIsImV4cCI6MjA2ODc2NjAwMn0.MdOemmt9mrcQoO5cMT7yDLX4JayROiFEPBdGUL57lps"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4600,
+        896
+      ],
+      "id": "upsert-supa-001",
+      "name": "Upsert to Supabase",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabase-auth-001",
+          "name": "Supabase Service Role"
+        }
+      },
+      "onError": "continueErrorOutput"
     }
   ],
   "pinData": {},
@@ -1151,6 +1230,44 @@
             "index": 0
           }
         ]
+      ]
+    },
+    "Update Job Row": {
+      "main": [
+        [
+          {
+            "node": "Prepare Vector Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Vector Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Embedding": {
+      "main": [
+        [
+          {
+            "node": "Upsert to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert to Supabase": {
+      "main": [
+        []
       ]
     }
   },
