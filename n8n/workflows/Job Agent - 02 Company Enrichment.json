@@ -899,8 +899,8 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://pmlyoptbhllllzngrxvn.supabase.co/rest/v1/rpc/upsert_job_application",
-        "authentication": "genericCredentialType",
+        "url": "https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/rpc/upsert_job_application",
+        "authentication": "none",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
@@ -910,7 +910,15 @@
           "parameters": [
             {
               "name": "apikey",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtbHlvcHRiaGxsbGx6bmdyeHZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxOTAwMDIsImV4cCI6MjA2ODc2NjAwMn0.MdOemmt9mrcQoO5cMT7yDLX4JayROiFEPBdGUL57lps"
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
             },
             {
               "name": "Prefer",
@@ -928,12 +936,6 @@
       ],
       "id": "upsert-supa-001",
       "name": "Upsert to Supabase",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "supabase-auth-001",
-          "name": "Supabase Service Role"
-        }
-      },
       "onError": "continueErrorOutput"
     }
   ],
