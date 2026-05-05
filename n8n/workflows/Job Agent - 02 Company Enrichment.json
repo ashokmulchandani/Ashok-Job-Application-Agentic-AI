@@ -873,12 +873,12 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.openai.com/v1/embeddings",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "openAiApi",
+        "url": "https://testashok1.openai.azure.com/openai/deployments/testashok1-noble-oak-text-embedding-3-small/embeddings?api-version=2023-05-15",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"input\": \"{{ $json.content.slice(0, 8000) }}\",\n  \"model\": \"text-embedding-3-small\"\n}",
+        "jsonBody": "={\n  \"input\": \"{{ $json.content.replace(/[\\n\\r\\t]/g, \" \").slice(0, 8000) }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -890,9 +890,9 @@
       "id": "gen-embed-001",
       "name": "Generate Embedding",
       "credentials": {
-        "openAiApi": {
-          "id": "xLd8O964eMQoABCe",
-          "name": "OpenAi account 2"
+        "httpHeaderAuth": {
+          "id": "jjUOHftcBqLwwjjm",
+          "name": "Azure OpenAI API Key-03May26"
         }
       }
     },
