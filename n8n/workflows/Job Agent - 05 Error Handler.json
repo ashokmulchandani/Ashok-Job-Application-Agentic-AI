@@ -1,0 +1,87 @@
+{
+  "name": "Job Agent - 05 Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "err-trigger-001",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        448,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const errorData = $input.first().json;\n\nconst execution = errorData.execution || {};\nconst workflow = errorData.workflow || {};\nconst lastNode = execution.lastNodeExecuted || 'Unknown';\n\nlet errorMessage = 'Unknown error';\ntry {\n  const msg = execution.error?.message || '';\n  if (msg) {\n    errorMessage = msg.slice(0, 500);\n  } else if (execution.error) {\n    errorMessage = JSON.stringify(execution.error).slice(0, 500);\n  }\n} catch (e) {\n  errorMessage = 'Error parsing failed';\n}\n\nconst now = new Date();\nconst timestamp = now.toLocaleString('en-AU', { timeZone: 'Australia/Sydney' });\n\nreturn [{\n  json: {\n    workflow_name: workflow.name || 'Unknown',\n    node_name: lastNode,\n    error_message: errorMessage,\n    timestamp: timestamp,\n    execution_id: execution.id || 'N/A'\n  }\n}];\n"
+      },
+      "id": "err-format-001",
+      "name": "Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "1414560298",
+        "text": "=🚨 *Job Agent Error*\n\n*Workflow:* {{ $json.workflow_name }}\n*Node:* {{ $json.node_name }}\n*Time:* {{ $json.timestamp }}\n\n*Error:* {{ $json.error_message }}\n\n*Execution:* {{ $json.execution_id }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "err-telegram-001",
+      "name": "Alert Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        928,
+        380
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "vZzbzI1YiyjFFiwz",
+          "name": "Telegram account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Format Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error": {
+      "main": [
+        [
+          {
+            "node": "Alert Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "job-agent-error-handler-v1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
+  },
+  "tags": []
+}
