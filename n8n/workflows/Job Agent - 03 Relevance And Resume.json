@@ -207,6 +207,47 @@
     },
     {
       "parameters": {
+        "method": "POST",
+        "url": "https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/rpc/upsert_job_application",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_job_id: $json.job_id, p_title: $json.title, p_company_name: $json.company_name, p_location: $json.location || '', p_industry: '', p_status: $json.status, p_fit_score: $json.fit_score, p_content: '', p_metadata: { resume_markdown: $json.resume_markdown, resume_html: $json.resume_html, tailoring_rationale: $json.tailoring_rationale, fit_rationale: $json.fit_rationale, matched_requirements: $json.matched_requirements, missing_requirements: $json.missing_requirements }, p_embedding: null }) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1968,
+        1552
+      ],
+      "id": "upsert-resume-supa-001",
+      "name": "Upsert Resume to Supabase",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
         "jsCode": "const job = $json;\nreturn [{ json: {\n  ...job,\n  status: job.fit.fit_score >= 65 ? 'needs_review' : 'rejected',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
       },
       "id": "ab962fd9-03e1-4b83-9c27-e744f36ca897",
@@ -247,7 +288,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        1968,
+        2208,
         1632
       ],
       "credentials": {
@@ -415,6 +456,24 @@
     },
     "Parse Resume": {
       "main": [
+        [
+          {
+            "node": "Upsert Resume to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Resume to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Update Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Update Google Sheets",

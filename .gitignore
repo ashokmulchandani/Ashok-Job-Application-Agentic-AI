@@ -4,6 +4,13 @@ config/.env
 # Resume files (personal)
 Ashok-Master_Resume/
 
+# Sample test files
+Sample_test_Job_Application_Case_Ashok/
+
+# n8n workflow JSONs contain embedded API keys (Supabase, Firecrawl)
+# ONLY commit to PRIVATE repos. For public repos, uncomment the line below:
+# n8n/workflows/
+
 # OS files
 .DS_Store
 Thumbs.db

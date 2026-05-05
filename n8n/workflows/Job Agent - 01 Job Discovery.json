@@ -14,7 +14,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const searches = [\n  { keywords: 'AI-Engineer', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'AI-ML-Engineer', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Continuous-Improvement-Specialist', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Continuous-Improvement-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Process-Improvement-Analyst', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Operations-Improvement-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Operations-Improvement-Analyst', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Agentic-AI-Automation-Engineer', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'ISO-9001-Quality-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Quality-Assurance-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Quality-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Lean-Six-Sigma', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'AI-Adoption-Specialist', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'AI-Adoption-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Change-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Process-Automation-Engineer', location: 'All-Australia', site: 'seek' }\n];\nconst urls = searches.map(s => {\n  if (s.site === 'seek') {\n    return { json: { search_url: `https://www.seek.com.au/${s.keywords}-jobs/in-${s.location}`, keywords: s.keywords.replace(/-/g, ' '), location: s.location.replace(/-/g, ' '), site: s.site } };\n  }\n  return { json: { search_url: '', keywords: s.keywords, location: s.location, site: s.site } };\n});\nreturn urls;"
+        "jsCode": "// If a specific keyword is passed via manual trigger input, use only that\n// Otherwise run all 16 default searches\nconst allSearches = [\n  { keywords: 'AI-Engineer', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'AI-ML-Engineer', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Continuous-Improvement-Specialist', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Continuous-Improvement-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Process-Improvement-Analyst', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Operations-Improvement-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Operations-Improvement-Analyst', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Agentic-AI-Automation-Engineer', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'ISO-9001-Quality-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Quality-Assurance-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Quality-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Lean-Six-Sigma', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'AI-Adoption-Specialist', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'AI-Adoption-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Change-Manager', location: 'Sydney-NSW', site: 'seek' },\n  { keywords: 'Process-Automation-Engineer', location: 'All-Australia', site: 'seek' }\n];\n\n// Check if manual input provides a keyword override\nconst input = $input.first()?.json || {};\nlet searches = allSearches;\n\nif (input.keyword) {\n  const kw = input.keyword.trim().replace(/\\s+/g, '-');\n  const loc = (input.location || 'Sydney-NSW').trim().replace(/\\s+/g, '-');\n  searches = [{ keywords: kw, location: loc, site: 'seek' }];\n}\n\nconst urls = searches.map(s => {\n  if (s.site === 'seek') {\n    return { json: { search_url: `https://au.seek.com/${s.keywords}-jobs/in-${s.location}`, keywords: s.keywords.replace(/-/g, ' '), location: s.location.replace(/-/g, ' '), site: s.site } };\n  }\n  return { json: { search_url: '', keywords: s.keywords, location: s.location, site: s.site } };\n});\nreturn urls;"
       },
       "id": "3a013c41-784c-4f62-8cfa-965d3bb92513",
       "name": "Build Search URLs",
@@ -35,7 +35,13 @@
         "specifyBody": "json",
         "jsonBody": "={\n  \"url\": \"{{$json.search_url}}\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true\n}",
         "options": {
-          "timeout": 30000
+          "timeout": 30000,
+          "batching": {
+            "batch": {
+              "batchSize": 2,
+              "batchInterval": 5000
+            }
+          }
         }
       },
       "id": "7e7c2bcc-56b9-47de-9f98-f67543eed903",
@@ -52,7 +58,7 @@
           "name": "Firecrawl API Key-Latest-03May26"
         }
       },
-      "onError": "continueErrorOutput"
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {

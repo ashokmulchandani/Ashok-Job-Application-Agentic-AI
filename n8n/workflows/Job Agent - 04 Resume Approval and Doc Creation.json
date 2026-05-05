@@ -571,6 +571,49 @@
     },
     {
       "parameters": {
+        "method": "GET",
+        "url": "=https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/job_applications?job_id=eq.{{$json.job_id}}&select=metadata",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0Ynh4Y2dhaWlzdnptYWlqeWhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkzNTI3MiwiZXhwIjoyMDkzNTExMjcyfQ.ExRuJ4LTKKOUha1IoqOIGcau2i4N5eoFOwibgY907Tc"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2128,
+        560
+      ],
+      "id": "fetch-resume-supa-001",
+      "name": "Fetch Resume from Supabase",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $('Filter Approved Only').item.json;\nconst supaResult = $json;\nlet record = Array.isArray(supaResult) ? supaResult[0] : supaResult;\nlet meta = {};\nif (record && record.metadata) {\n  meta = typeof record.metadata === 'string' ? JSON.parse(record.metadata) : record.metadata;\n}\nreturn [{ json: {\n  ...job,\n  resume_markdown: meta.resume_markdown || job.resume_markdown || '',\n  resume_html: meta.resume_html || job.resume_html || ''\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2000,
+        560
+      ],
+      "id": "merge-supa-resume-001",
+      "name": "Merge Supabase Resume"
+    },
+    {
+      "parameters": {
         "jsCode": "const job = $json;\nconst html = job.resume_html_content || '<html><body>No content</body></html>';\nconst fileName = job.file_name + '.html';\n\n// Convert HTML string to base64 for binary\nconst base64 = Buffer.from(html, 'utf-8').toString('base64');\n\nreturn [{\n  json: { ...job, html_file_name: fileName, doc_file_name: job.file_name },\n  binary: {\n    data: {\n      data: base64,\n      mimeType: 'text/html',\n      fileName: fileName\n    }\n  }\n}];\n"
       },
       "type": "n8n-nodes-base.code",
@@ -770,6 +813,35 @@
       ]
     },
     "Filter Approved Only": {
+      "main": [
+        [
+          {
+            "node": "Fetch Resume from Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Resume from Supabase": {
+      "main": [
+        [
+          {
+            "node": "Merge Supabase Resume",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Supabase Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Supabase Resume": {
       "main": [
         [
           {
