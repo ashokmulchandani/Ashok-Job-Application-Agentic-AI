@@ -1,0 +1,183 @@
+Ashok Mulchandani | Senior HubSpot Consultant and Specialist 
+ashokmulchandani@gmail.com | +61 424 514 214 (Primary) | 136, Cnr Merewether St & Wharf Rd, Newcastle, New South Wales, 2300
+
+Professional Summary
+Highly accomplished and results-driven HubSpot Developer Consultant role with Combined 15+ years of proven experience in designing, implementing, and optimizing scalable digital CRM solutions including HubSpot CRM ecosystems. Expert in leveraging HubSpot's full suite of tools, including Marketing Hub, Sales Hub, and CMS, Content Hub, Operations Hub:, Commerce Hub: to drive business growth, streamline operations, and enhance customer journeys. Adept at developing robust API integrations, custom solutions, and advanced automations using AI, Caht Automation, Aircall, Hubspot Calling Automation,  HTML, CSS, JavaScript, Python.Strategic partner to Marketing, Sales, and Revenue Operations teams, committed to continuous system improvement, data-driven decision-making, and comprehensive technical documentation for various sectors including Insurance, Healthcare, Government Procurement, Functions like, Tendering, Contracts, Training, Strategic Procurement Solutions, Business Development, People and Culture, Marketing and Events, IT Support, Finance, payroll Accounts (payable/receivable) PMO, Legal, and Supplier Relationship Management
+
+Key Expertise
+Skills
+HubSpot Expertise:
+•	HubSpot CRM Architecture & Design
+•	Marketing Hub, Sales Hub, Service Hub
+•	HubSpot CMS (Templates, Landing Pages, Content Modules)
+•	Workflows, Pipelines, Automation (Marketing, Sales, Customer Success)
+•	Custom Objects, Custom Properties, Deal Stages
+•	Lead Nurturing, Lead Scoring Models, Segmentation Strategies
+•	Email Templates, Forms, User Permissions
+•	Dashboards, Reports, Performance Metrics Analysis
+•	Customer Lifecycle Management
+Technical Skills:
+•	Programming Languages: HTML, CSS, JavaScript, Python
+•	API Integrations: RESTful APIs, Custom API Development, Data Migration, Data Syncing
+•	Integration Tools: Zapier, Braze, n8n, Internal Tools
+•	Cloud Platforms: OpenAI / Cloud-based AI Platforms (for AI agents)
+•	Database Concepts: CRM Entities (Contacts, Companies, Deals, Tickets)
+•	Version Control: [e.g., Git, GitHub - if required]
+•	Integration with Major Calling Systems, like Aircall, JustCall, Hubspot Calling Systems
+Operations & Strategy:
+•	Revenue Operations, Sales Operations, Marketing Operations
+•	Business Intelligence, Data-Driven Decision Making
+•	System Optimization & Performance Monitoring
+•	Troubleshooting & Issue Resolution
+•	Sales Enablement
+Soft Skills:
+•	Strategic Partnership & Stakeholder Management
+•	Excellent Written & Verbal Communication
+•	Proactive Problem-Solving & Attention to Detail
+•	Independent Work & Collaborative Team Player
+•	Comprehensive Technical Documentation
+•	Training & Support
+•	Analytical Mindset
+Employment History & Accomplishments
+Hubspot CI Specialist Consultant | Government Procurement Department (May 2024 - Present)
+●	Led the first-ever ISO 9001:2015 Accreditation from scratch, developing and maintaining the Quality Management System across 14 functional units including Marketing content HubSpot CMS policy
+●	Implemented an Agentic AI Chatbot (ChatGPT 4.0, Google Gemini) as a 24x7 ISO 9001:2015 guidance portal, enhancing operational readiness on Querying Hubspot CRM database
+●	Designed and implemented scalable HubSpot CRM architectures, ensuring best practices for data flow, system integration, and module management across diverse business units.
+●	Acted as a strategic partner to Revenue Operations, Sales, and Marketing leadership, proactively identifying and implementing system improvements that consistently aligned with core business goals and enhanced ROI.
+●	Led the development and optimization of HubSpot CMS templates, landing pages, and content modules, contributing to a tightly integrated growth engine that significantly drove acquisition and conversion rates.
+●	Optimized complex HubSpot workflows, sales pipelines, and marketing automation sequences, resulting in streamlined go-to-market processes across Marketing, Sales, and Customer Success teams.
+●	Developed and maintained robust custom integrations between HubSpot and critical external platforms (e.g., Braze, Zapier, internal tools), ensuring seamless data exchange, high reliability, and scalable system performance.
+●	Monitored HubSpot system performance comprehensively, proactively troubleshooting errors and implementing continuous improvements for speed, reliability, and usability.
+●	Developed and customized HubSpot workflows, reports, custom objects, and email templates, ensuring alignment with organizational goals and delivering exceptional user experiences.
+●	Integrated HubSpot with various low-code automation tools, including n8n, to further streamline complex business processes and reduce manual efforts.
+●	Created and interpreted advanced HubSpot dashboards and reports, providing key insights that enabled data-driven decision-making for marketing efforts and strategic initiatives.
+●	Provided comprehensive technical support and training to internal teams, fostering adoption and maximizing the effective utilization of HubSpot functionalities and features.
+●	Maintained clear, comprehensive technical documentation for backend architecture, workflows, integrations, processes, and naming conventions to ensure long-term usability and scalability.
+●	Stayed current with HubSpot’s evolving feature set, platform updates, and best practices, continuously improving system functionality and maximizing platform ROI.
+●	Successfully managed cross-functional initiatives end-to-end, involving stakeholders from Strategic Finance, Sales Leadership, Revenue Operations, and Growth Marketing
+●	Automated website crawling and knowledge base population for various Industrial sector customers using an Agentic RAG bot, reducing manual data collection time by 60% and ensuring 98% data freshness for critical business insights and improving NPS scores
+●	Engineered an Agentic RAG bot for automated lead nurturing that responded to prospect inquiries with personalized, context-aware information, leading to a 20% improvement in lead-to-opportunity conversion rate and freeing up sales reps' time by 10 hours/week
+●	Digital Content Policy Strategy: Developed Dashboard, Policies and procedures to support Marketing and Events , Digital Marketing teams to address Customer Buying Behaviour via B2B and B2C customer buying Channels like behaviour Google Ads, Instagram , Twitter( X), Blogs, Newsletters, WordPress Content Management, Meta Ads, LinkedIn Ads, YouTube Ads, Google Analytics, Social Channels, Content Writing, SEO , AdWords, lead generation techniques and perform detailed data analysis for actionable insights , ERP/CRM ( MS Dynamics, Salesforce, HubSpot) across diverse sectors including Learning & Development, ITES/IT, Manufacturing, Supply Chain, Warehousing, Logistics, Engineering, Automotive, Insurance, Energy & Utilities, Finance & Banking, Healthcare, Allied Health Services, and Telehealth for SAAS products and professional services
+Achievement 
+●	Reduced claims processing time by 15% (from an average of 10 days to 8.5 days) within Q2 2024 by implementing an automated document verification system integrated with HubSpot workflows, leading to a 5% increase in customer satisfaction scores.
+●	Developed and launched a new digital policy enrolment portal integrated with HubSpot forms and CRM by end of Q3 2024, resulting in a 20% reduction in manual data entry errors and a 10% increase in online policy sales.
+●	Improved patient satisfaction scores by 10% in the emergency department by Q4 2024 through the implementation of a new patient communication system leveraging HubSpot Service Hub's ticketing and automation features.
+●	Reduced hospital readmission rates for chronic heart failure patients by 7% within 12 months by establishing a post-discharge follow-up program managed and automated through HubSpot workflows and email sequences.
+●	Streamlined the vendor onboarding and tender submission process, reducing average vendor onboarding time by 25% (from 4 weeks to 3 weeks) by Q3 2024, by integrating vendor data collection and communication within HubSpot CRM.
+●	Achieved 100% compliance with new federal procurement regulations by January 2025 by updating internal policies and tracking compliance milestones and training completion within HubSpot CRM and custom objects.
+●	Increased successful tender win rate by 8% (from 35% to 43%) in FY2024 by refining proposal development strategies and enhancing competitive analysis using data tracked and managed within HubSpot CRM.
+●	Reduced the average tender preparation time by 20% by Q4 2024 through the standardization of templates and collaborative content creation managed within HubSpot CMS and Sales Hub documents, allowing for submission of 15% more bids.
+●	Decreased contract negotiation cycles by an average of 12% by Q3 2024 by implementing a standardized negotiation framework and tracking progress and communication within HubSpot CRM deals and custom properties.
+●	Achieved 95% on-time contract renewals for key suppliers in FY2024 by developing and utilizing a proactive contract management system with automated alerts and reminders set up in HubSpot workflows.
+●	Increased employee participation in mandatory compliance training by 25% (from 70% to 95%) within 6 months by managing registrations and sending automated reminders via HubSpot Marketing Hub email campaigns.
+●	Improved post-training skill application by 15% for new sales hires by Q2 2025, as measured by performance reviews and sales metrics tracked in HubSpot Sales Hub, through the introduction of a new mentorship program.
+●	Identified and implemented cost-saving initiatives across key supplier categories, resulting in a 10% reduction in annual procurement spend (totaling $X million) by end of FY2024, by tracking supplier performance and contract terms within HubSpot CRM.
+
+
+HubSpot Consultant | Aurion Systems - FSPR (Future State Partners) (July 2020 - May 2024)
+●	Automated website crawling and knowledge base population for various Industrial sector customers using an Agentic RAG bot, reducing manual data collection time by 60% and ensuring 98% data freshness for critical business insights for Hubspot CMS refinements
+●	Diversified the supplier base by 20% for critical components by Q1 2025, mitigating supply chain risks and improving resilience, through a targeted supplier identification and qualification program managed in HubSpot CRM.
+●	Secured 5 new enterprise clients, generating $2 million in new recurring revenue, within 12 months by executing a targeted outreach strategy and refining the sales pitch, all managed and tracked within HubSpot Sales Hub.
+●	Expanded market penetration into two new geographic regions by Q4 2024, resulting in a 15% increase in lead generation from those areas, through localized marketing campaigns managed and analyzed in HubSpot Marketing Hub.
+●	Increased employee retention rate by 7% (from 80% to 87%)  by launching a new employee engagement program, including enhanced professional development opportunities and recognition initiatives managed through HubSpot's internal communication tools (if applicable) or integrated with HR platforms.
+●	Improved employee satisfaction scores by 10% in the annual company survey by through the implementation of new flexible work policies and mental wellness programs, with feedback collected and analyzed via HubSpot forms and reporting.
+●	Increased website traffic by 20% and generated 500 new qualified leads through content marketing efforts within 6 months by optimizing SEO strategies and launching a new blog series on HubSpot CMS.
+●	Successfully organized and executed 3 major industry events in, resulting in a 15% increase in brand awareness and 100+ new sales opportunities, as measured by post-event surveys and CRM tracking within HubSpot.
+●	Reduced average IT support ticket resolution time by 25% (from 4 hours to 3 hours) within 3 months by implementing HubSpot Service Hub for ticketing, knowledge base, and automated routing.
+●	Achieved 99.9% system uptime for critical business applications by proactively monitoring infrastructure and tracking incidents and resolutions within HubSpot Service Hub.
+●	Reduced monthly operational costs by 8% through a comprehensive review of vendor contracts and negotiation of more favorable terms, with vendor data and contract details tracked in HubSpot CRM.
+●	Successfully completed the annual financial audit with zero material findings by end of, leveraging HubSpot's reporting capabilities to provide accurate data for financial reconciliation.
+●	Achieved 100% on-time and accurate payroll processing for all 500+ employees throughout, by integrating payroll systems with HubSpot CRM for employee data management and updates.
+●	Streamlined the payroll reconciliation process, reducing monthly reconciliation time by 30% through the integration of payroll data with HubSpot for employee record management and reporting.
+●	Reduced average accounts receivable days outstanding (DSO) by 10 days (from 45 to 35 days) within 6 months by implementing a more aggressive follow-up strategy and offering early payment incentives, managed through HubSpot Sales Hub sequences and payment tracking.
+●	Decreased accounts payable processing errors by 15% by through the adoption of an automated invoice matching system, with vendor information and payment statuses tracked in HubSpot CRM.
+●	Improved project delivery success rate by 15% (from 70% to 85%) by standardizing project methodologies and tracking project milestones, tasks, and communications within HubSpot CRM's custom objects and reporting.
+●	Reduced average project budget overruns by 10% across the portfolio within 12 months by enhancing initial project scoping and implementing stricter budget tracking mechanisms, with financial data linked to HubSpot records.
+●	Reduced legal review turnaround time for standard contracts by 20% (from 5 business days to 4 business days) through the development of standardized templates and a new internal review process managed within HubSpot workflows.
+●	Successfully mitigated legal risk by updating 100% of company privacy policies to comply with new data protection regulations by January 2025, with compliance tracking and communication managed through HubSpot.
+●	Improved key supplier performance scores by an average of 10% in through the implementation of a new quarterly business review (QBR) program and joint improvement initiatives, with all interactions and performance data tracked in HubSpot CRM.
+Negotiated new terms with 5 critical suppliers resulting in a 5% average cost reduction and improved service level agreements, with negotiation progress and contract details managed in HubSpot CRM.
+●	Designed and deployed an Agentic AI web crawler and Hubspot Lead generator to extract and structure product specifications from 200+ manufacturer websites, resulting in a 40% increase in product data accuracy and accelerated new product onboarding by 2 weeks within the first quarter of deployment
+●	Developed and implemented an Agentic AI calling bot plus Hubspot for initial customer support inquiries, achieving a 15% increase in first-call resolution rates and reducing average call handling time by 2 minutes within 6 months, significantly improving customer satisfaction scores.
+●	Engineered an Agentic Bot and Hubspot sales qualification bot that autonomously conducted initial prospect outreach and qualification calls, resulting in a 20% increase in qualified leads passed to sales representatives and a 10% reduction in sales cycle length over a one-year period.
+●	Implemented an Agentic Bot and Hubspot along with Prompt Engineering content generation bot that dynamically creates personalized marketing copy for customer segments, resulting in a 12% increase in click-through rates (CTRs) on digital campaigns and a 5% boost in conversion rates within 6 months.
+●	Reduced penalty costs and improved material supply accuracy from 59% to 100% in PMO functions through automation and Visual Management tools.
+●	Implemented ChatGPT-styled WhatsApp integrated chatbot, reducing customer response time from 24 hours to under 2 minutes.
+●	Reduced average handling time (AHT) for customer support requests by 20% using Lean Six Sigma.
+●	Led successful rollout of new digital support channels, increasing customer interactions by 15% in Q1.
+●	Reduced financial reporting turnaround time within Xero by 20% via streamlined workflows.
+●	Implemented RPA bots to automate customer information retrieval and PR-PO process, reducing effort by 20%.
+●	Managed organizational change for major technology rollouts (SAP, Oracle, Smartsheet, Salesforce, HubSpot, Zoho, Primavera), driving cost reduction and sustained value.
+●	Improved demand forecasting accuracy by 20% and reduced customer service inquiries related to booking discrepancies by 25% through advanced analytics.
+●	Achieved 15% increase in overall process efficiency and 20% reduction in customer inquiry handling time via Hubspot
+●	Identified and executed cost-saving initiatives, leading to a 12% reduction in operational expenses via Hubspot
+Continuous Improvement Execution Specialist Consultant | Stramit - Fletchers (Aug 2022 - March 2023) (Consulting Assignment)
+●	Achieved ISO 9001:2015 re-certification with NIL Non-conformance by establishing comprehensive QMS and audit plans.
+●	Delivered measurable reduction in material waste and warranty claims, contributing to a $1 million national saving target.
+●	Successfully implemented the "10 Pillars Operational Excellence program" across the region.
+●	Drove OEE excellence, projected to deliver $300k in savings per region in year one.
+●	Increased productivity in flashings and rainwater cells by 40% in Metro sites, achieving 90 pieces per person per hour.
+Consultant in Business Improvement & Coach (Tech Mgr.) | UGL Unipart -(Feb 2019 - July 2020)
+●	Improved business delivery accuracy (DIFOT) from 85% to 100% across multi-functional and multi-site scope using Lean, data-driven, and change management principles.
+●	Project-managed various SMART initiatives from inception to delivery, ensuring high change adoption within schedule and budget.
+●	Coached a large pool of staff on Lean tools and business improvement methods, enabling independent improvements.
+●	Designed and established effective communication cells and visual management systems for team collaboration and process monitoring.
+Business Improvement Professional | Department of Justice (June 2018 - Sept 2018)
+●	Captured As-Is and designed To-Be processes for a major strategic project in corrective services, improving prison population flow, and creating capacity.
+●	Finalized analysis and direction for a statewide project to maximize prison bed availability, establishing a baseline for business improvement.
+●	Helped establish a reporting and analysis mechanism across statewide operations (System/People/Process) to develop a collaborative reporting capability.
+Projects, Business, Process Improvement Consulting | Serco – Defense and Royal Navy (RAN) (July 2017 – Jan 2018)
+●	Led a major change and business improvement project to evaluate and implement a data centralization IT solution (O365 and MS SharePoint) for Naval Ships and Asset Management.
+●	Improved productivity by minimizing effort waste and enhancing information sharing and collaboration within defense contract execution.
+●	Ensured cost-effective compliance with Defense contractual obligations with higher data accuracy.
+●	Developed work instructions and documentation for the FMSC Maintenance Planning function.
+National Specialist (Operations and Excellence) | VFX Print Group (Nov 2016 – March 2017)
+●	Improved productivity by 10-15% through reduction in downtime and improved manpower utilization, saving $100,000.
+●	Reduced rework from 25% to NIL by improving delivery processes, achieving record delivery levels and turnaround times.
+●	Implemented a bespoke Planning Mechanism using existing IT infrastructure, saving costs on new systems and optimizing resource utilization.
+●	Overcame resistance to change by exploiting Change Management methods, improving product distribution time by 30%.
+Senior Consultant Projects, Business, Process Improvement | Serco Defense (Royal Navy) (Aug 2016 – Sept 2016)
+●	Established a new, improved Digitally Automated Transactional Process for Maintenance Management System – “Digital Sustainability” for Armadale Class Patrol Boats (ACPB).
+●	Designed a new process to utilize Siemens’ PLM solution (worth $3 million AUD), optimizing headcount.
+●	Developed optimized digital business processes for marine vessel assets maintenance management.
+Continuous Improvement Manager (Projects) | Department of Health (March 2015 – March 2016)
+●	Successfully delivered Pilot Reduction in Hospital Meal Wastes across five Major State-Run Hospitals, with projected annual cost savings of $3 million statewide.
+●	Reduced errors and simplified Payroll-Overpayment Process, saving $1 million with 5% error reduction and headcount reduction.
+●	Optimized Supervisor’s Workload across all Local Health Districts (LHDs) by task centralization.
+●	Led Lean deployment across Linen sites to reduce waste, aiming for $10 million in savings.
+Assistant Manager | Larsen & Toubro Ltd. (North America, Mexico, China, Taiwan, India) (Aug 2007 – Dec 2014)
+●	Operational Excellence Consulting (Client: CISCO, China): Consulted to reduce product transformation/conversion cost for a major consumer electronics manufacturer.
+●	Industrial Engineer / Manufacturing Engineer / Operational Excellence (Clients: Covidien, STERIS, USA):
+○	Championed the implementation of the Unique Device Identification FDA Protocol (UDI) to enhance traceability.
+○	Automated manual wax stamping process, eliminating 24 man-hours per shift (IQ/OQ/PQ performed).
+○	Reduced in-process inventory waste/rejection from 7.6% to 1.5% through control plan implementation.
+○	Improved productivity of Endoscopic Surgery Staple Instruments Product Line #2 from 200 to 1000 per shift using Lean-VSM, generating $115 million USD/year.
+○	Led KAIZEN for Change Over Time Reduction at Endoscopic Surgery Staple Instruments Product Line 1&2 from 45 min to 15 min, saving $2 million USD/year.
+○	Salvaged QC-fired SULU (Single Use Loading Units), saving $350,000 USD/year.
+○	Improved productivity of Vloc TM Wound closure devices, saving $31 million USD in initial investment.
+○	Reduced field failure complaints by 80% through in-depth study of medical device assembly process.
+Industrial Engineer / Manufacturing Engineer / Operational Excellence (Clients: Rockwell, P&G, Oshkosh, DAF, Paccar Trucks):
+○	Reduced changeover time by 67% on the FMCG packaging line, generating $7 million USD/year for P&G.
+○	Managed LVMCC 2500 Mechanical engineering deliverables, generating $1.8 million for Rockwell Automation by reducing customer response time.
+○	Reduced defects in Final Quality Check for the Assembly drawing creation process, saving $50,000 USD/year.
+○	Performed Time and Motion Study for AGCO Inc., achieving Zero Production.
+Education & Certifications
+●	Certification by Training on HubSpot CMS, Marketing, Sales, service modules , FSPR 2020
+●	Certification in Business Foundation | Wharton Business School, USA (2015 - ongoing)
+●	M.S. (By Research) Industrial Engineering: Concentration Management Systems Engineering | Indian Institute of Technology Madras (IIT), India (Jan 2014) (Thesis WIP)
+●	B.S. Engineering | University of Raj, India (July 2003 - July 2007)
+●	Certified associate in project management | Project Management Institute (PMI), USA (2012)
+●	Lean Six Sigma Black Belt | American Society of Quality (ASQ), USA (2011)
+●	Six Sigma Green Belt | American Society of Quality (ASQ), USA (2010)
+●	Certified Manager Organizational Excellence | ASQ (Expected 2027)
+●	Certification Managing and Leading Change | Udemy, USA (2018)
+Software & Tool Proficiency
+●	AI/Automation: AI Copilot, ChatGPT 4.0, N8N, Supabase, Power Automate, UI Path, Automation Anywhere.
+●	ERP/CRM: Machsip, Oracle, SAP, JDE, Blue Yonder, BPCS, HubSpot, Pipedrive, MS Dyanmics, Salesforce Zoho, Salesforce, ProWorkflow, Pipedrive, MS Dynamics.
+●	Project Management: Principal Toolbox, Trello, Basecamp, MS Project 2016, Smartsheet, Primavera, Monday, PROCORE, JIRA, ServiceNow.
+●	Process Management & Mapping: MS Visio, Holocentric, Draw.io, Lucidchart, Signavio, ARIS, Promapp, Celonis.
+●	Analysis & Business Intelligence: Minitab 15/16/17, MATLAB, Power BI, Tableau, Qlik Sense, QlikView, Excel Dashboard, PYTHON.
+●	Accounts & Finance: SAP, XERO, MYOB, Oracle, QuickBooks, PayPal, Stripe.
+●	CAD/PLM/Simulation: PRO/E Wildfire 3.0/4.0, Catia V5 R15, SolidWorks 2007, AutoCAD 2008, UH-NX5, Ansys 10, Agile, Arena, Flex Sim, ProModel.
+●	Other: MS Office Suite, SharePoint, O365, PowerApps, Workday, Zoho, Sage, Key Pay.
+

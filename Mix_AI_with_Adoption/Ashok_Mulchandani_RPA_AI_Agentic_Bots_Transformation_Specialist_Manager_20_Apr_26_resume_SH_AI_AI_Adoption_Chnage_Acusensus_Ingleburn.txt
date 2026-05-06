@@ -1,0 +1,206 @@
+Ashok Mulchandani | Specialist in Agentic AI, Business, Process Automation, Transformation, Process Quality Improvement and CRM/ERP CRM
+ashokmul.chandani@gmail.com | +61 424 514 214 (Primary) | Sydney, NSW
+
+Professional Summary
+Highly innovative and results-driven Agentic AI, Robotic Process Automation, Quality Improvement, transformation, excellence, CRM, ERP professional with combined 18+ years of experience at the intersection of of AI and Agentic Process Automation Cycles(Order-to-Cash), (Record-to-Report), (Procure-to-Pay),, Continuous Improvement product management and advanced AI engineering. Proven track record in defining and delivering transformative AI solutions, including agentic multi-node decision models and CRM, RAG systems. Adept at leveraging deep technical expertise to drive business strategy, manage complex projects, and champion ethical AI adoption in dynamic environments. Expert in PMI, Smartsheet, MS Viso Process mapping, Scrum , Kanban, Business Application, Automations n8n, Power tools Automate, power Apps, UI Path, Hubhello, LangChain, Aircall, Salesforce, Hubspot MS Dynamics, AI Calling Automation, Azure Open AI, Azure Ai, AWS AI services, Vector Databases, Open AI Embedding, and skilled in full-stack AI Agentic application development. Combines strong technical prowess , program delivery management , people change with a strategic mindset, demonstrating commercial acumen, effective stakeholder engagement, and a commitment to delivering high-impact, ethically sound AI solutions that revolutionize business operations for various sectors including Insurance, Healthcare, Government Procurement, Functions like, Underwriting ,Tendering, Contracts, Training, Strategic Procurement Solutions, Business Development, People and Culture, Marketing and Events, IT Support, Finance, payroll Accounts (payable/receivable) PMO, Legal, and Supplier Relationship Management
+
+Key Expertise and Focus Area
+•	Digital Transformation & Automation: AI Bot Agents (ChatGPT 4.0, Google Gemini), RPA (UiPath, Automation Anywhere), CRM/ERP Implementation & Integration, Digital Dashboards (Power BI, Tableau, Qlik Sense), Workflow Automation.
+•	Stakeholder & People Management: Cross-functional Collaboration, Coaching & Mentoring, Lean Cultural Change, Organizational Change Management (OCM), Training & Development, Team Leadership.
+•	Organizational Change Management: Utilized tailored OCM strategies with various stakeholder groups, including team members, managers, and executives, to implement focused training and adoption workshops. This supported projected growth by ensuring effective change integration across all levels and departments, from operations and ICT to marketing and human capital.
+•	Data Analysis & Business Intelligence: Minitab, MATLAB, Excel Dashboard, SQL, Data Collection & Interpretation, Predictive Analytics, KPI Development & Monitoring, DOE, MSA.
+•	Project & Program Management: Project Scoping/Reporting, PMO Governance, CAPEX, RAID Logs, Agile Methodologies, Project Planning & Execution, Critical Path Management.
+•	Quality Management Systems (QMS): ISO 9001/13485, ISO 14971 Risk Management, Quality Audits (Internal/External), NCR Resolution, PFMEA, GAP Assessments.
+•	Industry Compliance: Build Solutions in line with policies and relevant regulatory requirements (Australian Privacy Act, CDR, ASIC, APRA CPS 234, ISO 27001, ISO 42001:2023 for AI). For Personal Identity Data etc , Work with Risk and Compliance stakeholders to ensure AI-influenced decisions are appropriately logged and explainable.
+•	Operational Excellence: Lean Six Sigma (DMAIC, DFSS, ADKAR, PDCA, NPD), Value Stream Mapping, Process Re-Engineering, OEE Improvement, Audits, Statistical Process Control, TPM, SME
+•	Process Impacts:
+•	Customer Support, Multichannel communications
+•	Credit Claims Management, New Policy Issuance, AI-Audio Claims 
+•	Marketing and Sales, Business Development 
+•	Finance, Payroll, APAR
+•	Procure-to-Pay
+•	Legal, Contract Management, Supplier Management
+•	Project Management, scoping, Data Collection and Analysis
+•	Machine DOWNTIME reduction, Packaging operations, 
+•	Warehouse Operations, 
+•	Reverse Logistics’, Inbound/Outbound, Post goods issue, Gate pass 
+•	Project Management, Scoping
+•	Reporting Process, 
+•	Workplace health & Safety Process
+•	Freight Forwarding, 
+•	Finance Accounts Payable/Receivable, 
+•	Reporting Process, 
+•	Demand Planning, Forecasting, Predictions, 
+•	Machine and Packaging automation 
+•	Multisite integration
+•	Manufacturing Process, Packaging lines, Material Supply, logistics, Quality Assurance, Regulatory Check, Dispatch, inbound/outbound
+•	People Change Management
+•	KPI Impacts: 
+•	Underwriters , Policy Makers, Payroll, PA, APAR Accuracy, Cash Flow, Marketing, Sales BDM, Digital Marketing, HR/HCM, PMO, Supplier  Performance, Procurement, Supply Chian , Warehousing, ISO 9001 Compliance, OEE, Lead time, DOWNTIME reduction, NVA reduction, Cycle Time, DIFOT, Freight Cost, Operations team Utilization, Kitting Accuracy, Obsolescence Process, Dispatch Process, Packaging Process, Warehousing (Inbound /outbound KPI’s), Accuracy of Order Processing within customer contact centers, labor and storage cost, turnaround time of Asset Maintenance Delivery, Operation Team Utilization, Reporting Accuracy, 
+
+AI Product & Strategy:
+•	AI Product Management & Roadmap Definition
+•	Project Management (Timelines, Budgets, Risk Management)
+•	Product Performance Measurement & Reporting
+•	Ethical AI, Data Governance, Change Management
+•	Data & Analytics Ecosystems (AWS, Azure, Snowflake, Databricks)
+•	Tools: Jira, Confluence, Figma, Power BI, Tableau
+Consultative & Soft Skills:
+•	Consultative Mindset & Strategic Thinking
+•	Commercial Acumen & Problem-Solving
+•	Strong Communication (Technical & Non-Technical Audiences)
+•	Stakeholder Engagement & Influence
+•	Entrepreneurial & Adaptable Mindset
+•	Analytical Thinking
+Strategic Design & Operating Models
+•	Future-State Architecture: Spearheaded the design of comprehensive Operating Models and OCM strategies, aligning technical Agentic AI roadmaps with overarching business goals.
+•	Capability Diagnostic Reviews: Conducted thorough change impact assessments and diagnostic reviews across cross-functional teams (Production, Logistics, ICT) to identify disruptions and maximize adoption.
+•	Transformation Roadmaps: Developed structured implementation plans and transformation roadmaps that integrated benefits realization principles to measure tangible ROI.
+Stakeholder Engagement & Leadership Alignment
+•	Executive Facilitation: Led Leadership Alignment Workshops for Board Members, C-suite stakeholders, utilizing design thinking to foster a unified approach to large-scale change.
+•	Compelling Insights: Produced high-quality consulting deliverables, including advanced data analytics and visual management dashboards, to inform strategic decision-making.
+•	Collaborative OCM: Managed resistance through proactive stakeholder engagement, applying ADKAR/Prosci principles to ensure long-term cultural and behavioral shifts.
+
+Digital & AI Transformation Delivery
+•	Agentic AI Engineering: Designed and deployed autonomous AI workflows and multi-node decision models using LangGraph and AWS Bedrock to solve complex operational bottlenecks.
+•	RAG & Semantic Search: Architected Retrieval-Augmented Generation (RAG) systems and Vector Databases (Pinecone, Weaviate) to transform unstructured data into actionable business intelligence.
+•	Technology Adoption: Collaborated with ICT teams to develop seamless adoption strategies for new technologies, ensuring employees were trained to maximize system benefits.
+
+CRM/ERP Expertise:
+•	CRM/ERP CRM Architecture & Design
+•	Marketing Hub, Sales Hub, Service Hub
+•	CRM/ERP CMS (Templates, Landing Pages, Content Modules)
+•	Workflows, Pipelines, Automation (Marketing, Sales, Customer Success)
+•	Custom Objects, Custom Properties, Deal Stages
+•	Lead Nurturing, Lead Scoring Models, Segmentation Strategies
+•	Email Templates, Forms, User Permissions
+•	Dashboards, Reports, Performance Metrics Analysis
+Customer Lifecycle Management RPA, Bot , Process automation, Agentic AI & Engineering:
+•	Agentic AI Construction (Multi-Node Decision Models, MCP,State Graphs, Agentic Memory, API Integration)
+•	Retrieval Augmented Generation (RAG) & Semantic Search
+•	LLMs (OpenAI, Anthropic, Gemini, Hugging Face, AWS Bedrock models).
+•	Azure OpenAI Service, Azure AI Vision, Azure Content Safety, and Azure Document Intelligence. Professional experience with Azure AI Search (Vector/Hybrid Search) and LangChain integration for enterprise-grade generative AI apps
+•	Proficient in deploying and scaling LLMs via Azure OpenAI Service. Skilled in implementing Retrieval-Augmented Generation (RAG) using Azure AI Search and integrating enterprise data via Azure Data Factory and Blob Storage for high-concurrency AI agents and Simialry for AWS ECR, S3 Lambda
+•	RAG (Retrieval-Augmented Generation), vector databases (Pinecone, FAISS, Weaviate, Amazon Kendra).
+•	Building autonomous AI workflows, multi-agent systems, or orchestration layers.
+•	Data Scraping/Extraction & Unstructured to Structured Data Conversion
+•	Guardrails, Human-in-the-Loop, Multi-Agent Workflows, Reflection, Citing Sources
+•	Lang Chain/LangGraph/LangSmith, OpenAI API (Craw4Ai, WebUI, Swarm/Agents_SDK), AWS Lambda/S3/Gateway/ECR, AWS Cloud (Bedrock, SageMaker, Lambda, API Gateway, Step Functions, ECS/EKS).
+•	Vector Databases (e.g., Supabase, Pinecone, Weaviate), Fine-tuning, Docker, Kubernetes
+•	AI-Centric Coding Workflow (LLM-assisted development: Lovable, Firebase studio , Cursor AI, Copilot)
+•	Full-Stack Development (for AI PoCs), DevOps Methodologies, Github Actions
+Employment History & Accomplishments
+CI Process Automations Specialist (Customer Experience, Continuous Quality Improvement, Operations Excellence, Innovation) | Government Procurement Department (May 2024 - Present)
+●	Developed and implemented an Agentic RAG calling bot for initial customer support inquiries, achieving a 15% increase in first-call resolution rates and reducing average call handling time by 2 minutes within 6 months, significantly improving customer satisfaction scores.
+●	Led the first-ever ISO 9001:2015 Accreditation from scratch, developing and maintaining the Quality Management System across 14 functional units. Along with Agentic AI based Data knowledge base
+●	Implemented an Agentic AI Chatbot (ChatGPT 4.0, Google Gemini, perplexity, CRM/ERP, Aircall) as a 24x7 ISO 9001:2015 guidance portal, enhancing operational readiness.
+●	Designed and implemented scalable CRM/ERP architectures, ensuring best practices for data flow, system integration, and module management across diverse business units.
+●	Acted as a strategic partner to Revenue Operations, Sales, and Marketing leadership, proactively identifying and implementing system improvements that consistently aligned with core business goals and enhanced ROI.
+●	Deployed an Agentic RAG bot for automated contract review, successfully extracting 99% of key clauses and legal entities from 1000 Tendering Contractual Documents/ month of legal documents, leading to a 70% reduction in manual review hours and mitigating compliance risks over 9 months.
+●	Automated website crawling and knowledge base population for various Industrial sector customers using an Agentic RAG bot, reducing manual data collection time by 60% and ensuring 98% data freshness for critical business insights and improving NPS scores
+●	Achievement: Developed and implemented an Agentic RAG bot for invoice duplication detection and control, preventing over $150,000/monthly in duplicate payments and reducing manual reconciliation effort by 45% for the Accounts Payable department
+●	Achievement: Led the design and deployment of an Agentic RAG solution that cross-referenced incoming invoices with historical payment data and vendor contracts, improving duplicate invoice detection accuracy to 99.5% and decreasing invoice processing exceptions by 30% within 4 months
+●	Achievement: Developed an Agentic RAG bot to analyse project documentation ([e.g., meeting minutes, risk registers, progress reports]) across 15+ active projects, proactively identifying of potential risks and bottlenecks each week, which facilitated early intervention and resulted in a 15% reduction in critical project delays over the last fiscal year.
+●	Achievement: Designed and implemented an Agentic RAG system that ingests raw analytical data from dashboards, databases and generates natural language explanations and actionable insights for non-technical users, increasing data literacy by 20% and accelerating decision-making by one business day across
+●	Engineered an Agentic RAG bot for automated lead nurturing that responded to prospect inquiries with personalized, context-aware information, leading to a 20% improvement in lead-to-opportunity conversion rate and freeing up sales reps' time by 10 hours/week
+●	Architected and delivered a Multi-Turn Agentic AI Underwriting Assistant for for Life Insurance using n8n, Azure OpenAI GPT-4o and Azure AI Search, enabling underwriters to query complex insurance applications via natural language and reducing manual document review time by an estimated 40%
+●	Implemented a hybrid RAG pipeline (vector + semantic search) with section-aware chunking across Azure AI Search, achieving accurate retrieval of applicant medical history, lifestyle disclosures and financial details from unstructured PDF applications
+●	Built a multi-agent orchestration pattern with 3 specialist sub-agents (Document Search, Underwriting Analysis, Summary Generator) coordinated by a central conversational agent, reducing underwriter time-to-insight from hours to under 60 seconds per application
+●	Designed and deployed an LLM-as-Judge validation framework with 3 parallel judges (Factuality, Completeness, Consistency) using weighted scoring (40/30/30) to ensure AI-generated underwriting assessments meet quality thresholds before delivery
+●	Implemented a APRA-compliant audit trail with 7-year retention, PII/PHI access flagging and structured JSON logging to Azure Blob Storage, ensuring full traceability of all AI decisions for regulatory compliance
+●	Developed an automated error handling and alerting system using n8n error workflows and Telegram bot integration, categorising errors by severity (CRITICAL/WARNING/ERROR) and delivering real-time alerts, reducing mean time to detection for system failures
+●	Built an MCP (Model Context Protocol) server exposing 5 underwriting tools as standardised API endpoints, enabling external AI clients to interact with the underwriting system programmatically
+●	Delivered an automated Word document generator that converts AI-generated underwriting summaries into structured reports saved to Azure Blob Storage, covering 17 application sections including medical history, lifestyle risk and red flag identification
+
+Process Automations CI Manager (AI Agents Improvement) | FSPR (Future State Partners) (July 2020 - May 2024)
+●	Automated website crawling and knowledge base population for various Industrial sector customers using an Agentic RAG bot, reducing manual data collection time by 60% and ensuring 98% data freshness for critical business insights
+●	Led the development and optimization of CRM/ERP CMS templates, landing pages, and content modules, contributing to a tightly integrated growth engine that significantly drove acquisition and conversion rates.
+●	Optimized complex CRM/ERP workflows, sales pipelines, and marketing automation sequences, resulting in streamlined go-to-market processes across Marketing, Sales, and Customer Success teams.
+●	Developed and maintained robust custom integrations between CRM/ERP and critical external platforms (e.g., Braze, Zapier, internal tools), ensuring seamless data exchange, high reliability, and scalable system performance.
+●	Designed and deployed an Agentic RAG web crawler to extract and structure product specifications from 200+ manufacturer websites, resulting in a 40% increase in product data accuracy and accelerated new product onboarding by 2 weeks within the first quarter of deployment
+●	Developed and implemented an Agentic RAG calling bot for initial customer support inquiries, achieving a 15% increase in first-call resolution rates and reducing average call handling time by 2 minutes within 6 months, significantly improving customer satisfaction scores.
+●	Engineered an Agentic RAG sales qualification bot that autonomously conducted initial prospect outreach and qualification calls, resulting in a 20% increase in qualified leads passed to sales representatives and a 10% reduction in sales cycle length over a one-year period.
+●	Deployed an Agentic RAG bot for automated contract review, successfully extracting 99% of key clauses and legal entities from 1000 Tendering Contractual Documents/ month of legal documents, leading to a 70% reduction in manual review hours and mitigating compliance risks over 9 months.
+●	Designed and implemented an Agentic RAG system for research paper analysis, autonomously extracting key findings, methodologies, and author affiliations from 500+ scientific articles weekly, thereby accelerating literature review processes by 50%
+●	Implemented an Agentic RAG aong with Prompt Engineering content generation bot that dynamically creates personalized marketing copy for customer segments, resulting in a 12% increase in click-through rates (CTRs) on digital campaigns and a 5% boost in conversion rates within 6 months.
+●	Achievement: Designed and deployed an Agentic RAG system that dynamically generates tailored sales proposals and quotes based on customer needs and product configurations, reducing proposal creation time by 35% and increasing proposal accuracy by 95%, contributing to a 5% higher win rate
+●	Reduced penalty costs and improved material supply accuracy from 59% to 100% in PMO functions through automation and Visual Management tools.
+●	Implemented ChatGPT-styled WhatsApp integrated chatbot, reducing customer response time from 24 hours to under 2 minutes.
+●	Reduced average handling time (AHT) for customer support requests by 20% using Lean Six Sigma.
+●	Led successful rollout of new digital support channels, increasing customer interactions by 15% in Q1.
+●	Reduced financial reporting turnaround time within Xero by 20% via streamlined workflows.
+●	Implemented RPA bots to automate customer information retrieval and PR-PO process, reducing effort by 20%.
+●	Managed organizational change for major technology rollouts (SAP, Oracle, Smartsheet, Salesforce, CRM/ERP, SAP, Hubspot, Zoho, Primavera), driving cost reduction and sustained value.
+●	Improved demand forecasting accuracy by 20% and reduced customer service inquiries related to booking discrepancies by 25% through advanced analytics.
+●	Achieved 15% increase in overall process efficiency and 20% reduction in customer inquiry handling time.
+●	Identified and executed cost-saving initiatives, leading to a 12% reduction in operational expenses.
+Continuous Improvement Execution Specialist | Stramit - Fletchers (Aug 2022 - March 2023) (Consulting Assignment)
+●	Achieved ISO 9001:2015 re-certification with NIL Non-conformance by establishing comprehensive QMS and audit plans.
+●	Delivered measurable reduction in material waste and warranty claims, contributing to a $1 million national saving target.
+●	Successfully implemented the "10 Pillars Operational Excellence program" across the region.
+●	Drove OEE excellence, projected to deliver $300k in savings per region in year one.
+●	Increased productivity in flashings and rainwater cells by 40% in Metro sites, achieving 90 pieces per person per hour.
+Specialist in Business Improvement & Coach (Tech Mgr.) | UGL Unipart -(Feb 2019 - July 2020)
+●	Improved business delivery accuracy (DIFOT) from 85% to 100% across multi-functional and multi-site scope using Lean, data-driven, and change management principles.
+●	Project-managed various SMART initiatives from inception to delivery, ensuring high change adoption within schedule and budget.
+●	Coached a large pool of staff on Lean tools and business improvement methods, enabling independent improvements.
+●	Designed and established effective communication cells and visual management systems for team collaboration and process monitoring.
+Business Improvement Professional | Department of Justice (June 2018 - Sept 2018)
+●	Captured As-Is and designed To-Be processes for a major strategic project in corrective services, improving prison population flow, and creating capacity.
+●	Finalized analysis and direction for a statewide project to maximize prison bed availability, establishing a baseline for business improvement.
+●	Helped establish a reporting and analysis mechanism across statewide operations (System/People/Process) to develop a collaborative reporting capability.
+Projects, Business, Process Improvement Consulting | Serco – Defense and Royal Navy (RAN) (July 2017 – Jan 2018)
+●	Led a major change and business improvement project to evaluate and implement a data centralization IT solution (O365 and MS SharePoint) for Naval Ships and Asset Management.
+●	Improved productivity by minimizing effort waste and enhancing information sharing and collaboration within defense contract execution.
+●	Ensured cost-effective compliance with Defense contractual obligations with higher data accuracy.
+●	Developed work instructions and documentation for the FMSC Maintenance Planning function.
+National Manager (Operations and Excellence) | VFX Print Group (Nov 2016 – March 2017)
+●	Improved productivity by 10-15% through reduction in downtime and improved manpower utilization, saving $100,000.
+●	Reduced rework from 25% to NIL by improving delivery processes, achieving record delivery levels and turnaround times.
+●	Implemented a bespoke Planning Mechanism using existing IT infrastructure, saving costs on new systems and optimizing resource utilization.
+●	Overcame resistance to change by exploiting Change Management methods, improving product distribution time by 30%.
+Senior Consultant Projects, Business, Process Improvement | Serco Defense (Royal Navy) (Aug 2016 – Sept 2016)
+●	Established a new, improved Digitally Automated Transactional Process for Maintenance Management System – “Digital Sustainability” for Armadale Class Patrol Boats (ACPB).
+●	Designed a new process to utilize Siemens’ PLM solution (worth $3 million AUD), optimizing headcount.
+●	Developed optimized digital business processes for marine vessel assets maintenance management.
+Continuous Improvement Specialist (Projects) | Department of Health (March 2015 – March 2016)
+●	Successfully delivered Pilot Reduction in Hospital Meal Wastes across five Major State-Run Hospitals, with projected annual cost savings of $3 million statewide.
+●	Reduced errors and simplified Payroll-Overpayment Process, saving $1 million with 5% error reduction and headcount reduction.
+●	Optimized Supervisor’s Workload across all Local Health Districts (LHDs) by task centralization.
+●	Led Lean deployment across Linen sites to reduce waste, aiming for $10 million in savings.
+Assistant Manager | Larsen & Toubro Ltd. (North America, Mexico, China, Taiwan, India) (Aug 2007 – Dec 2014)
+●	Operational Excellence Consulting (Client: CISCO, China): Consulted to reduce product transformation/conversion cost for a major consumer electronics manufacturer.
+●	Operational Excellence Specialist (Clients: Covidien, STERIS, USA):
+○	Championed the implementation of the Unique Device Identification FDA Protocol (UDI) to enhance traceability.
+○	Automated manual wax stamping process, eliminating 24 man-hours per shift (IQ/OQ/PQ performed).
+○	Reduced in-process inventory waste/rejection from 7.6% to 1.5% through control plan implementation.
+○	Improved productivity of Endoscopic Surgery Staple Instruments Product Line #2 from 200 to 1000 per shift using Lean-VSM, generating $115 million USD/year.
+○	Led KAIZEN for Change Over Time Reduction at Endoscopic Surgery Staple Instruments Product Line 1&2 from 45 min to 15 min, saving $2 million USD/year.
+○	Salvaged QC-fired SULU (Single Use Loading Units), saving $350,000 USD/year.
+○	Improved productivity of Vloc TM Wound closure devices, saving $31 million USD in initial investment.
+○	Reduced field failure complaints by 80% through in-depth study of medical device assembly process.
+Operational Improvement and Excellence specialist (Clients: Rockwell, P&G, Oshkosh, DAF, Paccar Trucks):
+○	Reduced changeover time by 67% on the FMCG packaging line, generating $7 million USD/year for P&G.
+○	Managed LVMCC 2500 Mechanical engineering deliverables, generating $1.8 million for Rockwell Automation by reducing customer response time.
+○	Reduced defects in Final Quality Check for the Assembly drawing creation process, saving $50,000 USD/year.
+○	Performed Time and Motion Study for AGCO Inc., achieving Zero Production.
+Education & Certifications
+●	Certification in Business Foundation | Wharton Business School, USA (2015 - ongoing)
+●	B.S. Engineering | University of Raj, India (July 2003 - July 2007)
+●	Certified associate in project management | Project Management Institute (PMI), USA (2012)
+●	Lean Six Sigma Black Belt | American Society of Quality (ASQ), USA (2011)
+●	Six Sigma Green Belt | American Society of Quality (ASQ), USA (2010)
+●	Certified Manager Organizational Excellence | ASQ (Expected 2027)
+●	Certification Managing and Leading Change | Udemy, USA (2018)
+●	Certification in AWS Certified AI Practitioner | AWS (Expected in 2026)
+●	Certification in AWS Certified Machine Learning Practitioner | AWS ( Expected in 2026)
+●	Certified in HCD (Human Centred Design) IIT Bombay 2006 
+Software & Tool Proficiency
+●	AI/Automation: AI Copilot, ChatGPT 4.0, N8N, Supabase, Power Automate, UI Path, Automation Anywhere.
+●	ERP/CRM: Machsip, Oracle, SAP, JDE, Blue Yonder, BPCS, CRM/ERP, Zoho, Salesforce, ProWorkflow, Pipedrive, MS Dynamics.
+●	Project Management: Principal Toolbox, Trello, Basecamp, MS Project 2016, Smartsheet, Primavera, Monday, PROCORE, JIRA, ServiceNow.
+●	Process Management & Mapping: MS Visio, Holocentric, Draw.io, Lucidchart, Signavio, ARIS, Promapp, Celonis.
+●	Analysis & Business Intelligence: Minitab 15/16/17, MATLAB, Power BI, Tableau, Qlik Sense, QlikView, Excel Dashboard, PYTHON.
+●	Accounts & Finance: SAP, XERO, MYOB, Oracle, QuickBooks, PayPal, Stripe.
+●	CAD/PLM/Simulation: PRO/E Wildfire 3.0/4.0, Catia V5 R15, SolidWorks 2007, AutoCAD 2008, UH-NX5, Ansys 10, Agile, Arena, Flex Sim, ProModel.
+●	Other: MS Office Suite, SharePoint, O365, PowerApps, Workday, Zoho, Sage, Key Pay.
