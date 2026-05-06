@@ -14,13 +14,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const mapResult = $json;\nconst mapLinks = mapResult.links || [];\n\n// Get company_website from upstream nodes\nlet companyWebsite = '';\ntry { companyWebsite = $('Extract Full Description').item.json.company_website || ''; } catch(e) {}\nif (!companyWebsite) {\n  try { companyWebsite = $('Extract Company URL').item.json.company_website || ''; } catch(e) {}\n}\n\nconst baseUrl = companyWebsite.replace(/\\/$/, '');\nlet sitemapUrls = [];\nlet sitemapSource = 'none';\n\n// Try both with and without www\nconst baseUrls = [baseUrl];\nif (baseUrl.includes('://www.')) {\n  baseUrls.push(baseUrl.replace('://www.', '://'));\n} else {\n  baseUrls.push(baseUrl.replace('://', '://www.'));\n}\n\n// Helper: fetch with timeout\nasync function safeFetch(url) {\n  try {\n    const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });\n    if (resp.ok) return await resp.text();\n  } catch(e) {}\n  return '';\n}\n\n// Helper: extract <loc> URLs from XML\nfunction extractLocs(xml) {\n  const locs = [];\n  const re = /<loc>(https?:\\/\\/[^<]+)<\\/loc>/gi;\n  let m;\n  while ((m = re.exec(xml)) !== null) locs.push(m[1]);\n  return locs;\n}\n\n// Step 1: Try robots.txt for sitemap path\nlet customSitemapUrl = '';\nfor (const bu of baseUrls) {\n  const robotsTxt = await safeFetch(bu + '/robots.txt');\n  if (robotsTxt) {\n    const sm = robotsTxt.match(/Sitemap:\\s*(https?:\\/\\/[^\\s]+)/i);\n    if (sm) { customSitemapUrl = sm[1].trim(); break; }\n  }\n}\n\n// Step 2: Try sitemap paths in order\nconst sitemapPaths = [\n  customSitemapUrl,\n].filter(Boolean);\nfor (const bu of baseUrls) {\n  sitemapPaths.push(bu + '/sitemap.xml');\n  sitemapPaths.push(bu + '/sitemap_index.xml');\n  sitemapPaths.push(bu + '/wp-sitemap.xml');\n  sitemapPaths.push(bu + '/site-map.xml');\n  sitemapPaths.push(bu + '/sitemap.json');\n}\n\n// Add path-prefix sitemaps\nfor (const bu of baseUrls) {\n  try {\n    const urlObj = new URL(bu);\n    const pathParts = urlObj.pathname.split('/').filter(Boolean);\n    if (pathParts.length > 0) {\n      sitemapPaths.push(urlObj.origin + '/' + pathParts[0] + '/sitemap/sitemap.xml');\n    }\n    sitemapPaths.push(urlObj.origin + '/sitemap/sitemap.xml');\n  } catch(e) {}\n}\n\nfor (const smUrl of sitemapPaths) {\n  if (sitemapUrls.length > 5) break;\n  const content = await safeFetch(smUrl);\n  if (!content) continue;\n\n  // Check if it's actual XML with <loc> tags (not HTML disguised as 200)\n  if (content.includes('<loc>')) {\n    const locs = extractLocs(content);\n    // Filter out junk pages\n    const useful = locs.filter(u => !u.includes('/404') && !u.includes('/search-results') && !u.includes('/disclaimer'));\n    if (useful.length > 5) {\n      sitemapUrls = useful;\n      sitemapSource = smUrl;\n      break;\n    }\n  }\n\n  // Check for sitemap index (contains links to other sitemaps)\n  if (content.includes('<sitemap>')) {\n    const subSitemaps = extractLocs(content);\n    for (const sub of subSitemaps.slice(0, 3)) {\n      const subContent = await safeFetch(sub);\n      if (subContent) {\n        const subLocs = extractLocs(subContent);\n        sitemapUrls.push(...subLocs);\n      }\n    }\n    if (sitemapUrls.length > 5) {\n      sitemapSource = smUrl + ' (index)';\n      break;\n    }\n  }\n\n  // Check for JSON sitemap\n  if (smUrl.endsWith('.json') && content.startsWith('{')) {\n    try {\n      const j = JSON.parse(content);\n      const jsonUrls = (j.urls || j.pages || []).map(u => typeof u === 'string' ? u : u.url || u.loc).filter(Boolean);\n      if (jsonUrls.length > 5) {\n        sitemapUrls = jsonUrls;\n        sitemapSource = smUrl;\n        break;\n      }\n    } catch(e) {}\n  }\n}\n\n// Combine: sitemap URLs + Firecrawl /map URLs (deduped)\nconst allLinks = [...new Set([...sitemapUrls, ...mapLinks])];\n\n// Priority patterns for picking best pages\nconst priorityPatterns = [/about/i, /team/i, /product/i, /service/i, /career/i, /what-we-do/i, /our-story/i, /innovation/i, /solution/i, /fleet/i, /commitment/i, /sustainability/i, /esg/i];\n\nconst urls = [baseUrl];\n\n// First pass: priority pages\nfor (const link of allLinks) {\n  if (urls.length >= 8) break;\n  const isHome = link === baseUrl || link === baseUrl + '/';\n  const isPriority = priorityPatterns.some(p => p.test(link));\n  if (!isHome && isPriority && !urls.includes(link) && !link.endsWith('.pdf')) {\n    urls.push(link);\n  }\n}\n\n// Second pass: fill up to 5 minimum\nif (urls.length < 5) {\n  for (const link of allLinks) {\n    if (urls.length >= 5) break;\n    if (!urls.includes(link) && !link.endsWith('.pdf') && !link.includes('/404')) {\n      urls.push(link);\n    }\n  }\n}\n\nreturn [{ json: {\n  scrape_urls: urls,\n  sitemap_source: sitemapSource,\n  sitemap_urls_found: sitemapUrls.length,\n  map_urls_found: mapLinks.length,\n  total_discovered: allLinks.length\n} }];"
+        "jsCode": "const mapResult = $json;\nconst mapLinks = mapResult.links || [];\n\n// Get company_website from upstream nodes\nlet companyWebsite = '';\ntry { companyWebsite = $('Extract Full Description').item.json.company_website || ''; } catch(e) {}\nif (!companyWebsite) {\n  try { companyWebsite = $('Extract Company URL').item.json.company_website || ''; } catch(e) {}\n}\n\nconst baseUrl = companyWebsite.replace(/\\/$/, '');\n\n// Priority patterns for picking best pages\nconst priorityPatterns = [/about/i, /team/i, /product/i, /service/i, /career/i, /what-we-do/i, /our-story/i, /innovation/i, /solution/i, /fleet/i, /commitment/i, /sustainability/i, /esg/i];\n\nconst urls = [baseUrl];\n\n// First pass: priority pages from /map results\nfor (const link of mapLinks) {\n  if (urls.length >= 8) break;\n  const isHome = link === baseUrl || link === baseUrl + '/';\n  const isPriority = priorityPatterns.some(p => p.test(link));\n  if (!isHome && isPriority && !urls.includes(link) && !link.endsWith('.pdf')) {\n    urls.push(link);\n  }\n}\n\n// Second pass: fill up to 5 minimum\nif (urls.length < 5) {\n  for (const link of mapLinks) {\n    if (urls.length >= 5) break;\n    if (!urls.includes(link) && !link.endsWith('.pdf') && !link.includes('/404')) {\n      urls.push(link);\n    }\n  }\n}\n\n// Output multiple items - one per URL for HTTP Request node to process\nreturn urls.map(url => ({ json: { url, scrape_urls_count: urls.length, map_urls_found: mapLinks.length } }));\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        15200,
-        4976
+        15344,
+        4944
       ],
       "id": "704b93b8-1d4a-4687-ba18-6a4fe8afbffd",
       "name": "Pick Top Pages"
@@ -32,8 +32,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        15392,
-        4976
+        15664,
+        4752
       ],
       "id": "a87af5ee-3e49-4da2-89c3-ddb8867d8b1e",
       "name": "Scrape and Combine Pages"
@@ -193,8 +193,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        15008,
-        4976
+        14784,
+        4928
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -211,8 +211,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        15632,
-        4976
+        15952,
+        4944
       ],
       "id": "da3a7fa3-470f-4e99-93a8-430b19272c14",
       "name": "Prepare Azure Request"
@@ -233,7 +233,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        15984,
+        16192,
         5168
       ],
       "credentials": {
@@ -252,7 +252,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        16192,
+        16400,
         5152
       ]
     },
@@ -614,7 +614,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        16672,
+        16880,
         5232
       ],
       "credentials": {
@@ -846,12 +846,12 @@
     },
     {
       "parameters": {
-        "jsCode": "// Get full data from previous node (Parse Company Summary)\nconst job = $json;\n\nlet companyResearchStr = job.company_research_str || '{}';\n\nconst parts = [\n  'Job Title: ' + (job.title || ''),\n  'Company: ' + (job.company_name || ''),\n  'Location: ' + (job.location || ''),\n  'Description: ' + (job.full_description || '').slice(0, 5000),\n];\n\nlet researchObj = {};\ntry { researchObj = JSON.parse(companyResearchStr); } catch(e) {}\nparts.push('Company Summary: ' + (researchObj.company_summary || job.company_summary || ''));\nparts.push('Products: ' + (researchObj.products || []).join(', '));\nparts.push('Customers: ' + (researchObj.customers || []).join(', '));\nparts.push('Values: ' + (researchObj.values || []).join(', '));\nparts.push('Technical Signals: ' + (researchObj.technical_signals || []).join(', '));\nparts.push('Hiring Signals: ' + (researchObj.hiring_signals || []).join(', '));\nparts.push('Keywords: ' + (researchObj.keywords || []).join(', '));\n\nconst content = parts.filter(Boolean).join('\\n');\n\nconst text = content.toLowerCase();\nlet industry = 'General';\nif (text.includes('retail') || text.includes('e-commerce')) industry = 'Retail';\nelse if (text.includes('defence') || text.includes('navy')) industry = 'Defence';\nelse if (text.includes('health') || text.includes('medical')) industry = 'Healthcare';\nelse if (text.includes('manufacturing') || text.includes('factory')) industry = 'Manufacturing';\nelse if (text.includes('finance') || text.includes('banking') || text.includes('fintech')) industry = 'Finance';\nelse if (text.includes('government') || text.includes('council')) industry = 'Government';\nelse if (text.includes('logistics') || text.includes('supply chain')) industry = 'Supply Chain';\n\nlet companyResearchObj = {};\ntry { companyResearchObj = JSON.parse(companyResearchStr); } catch(e) {}\n\nconst metadata = {\n  search_keywords: job.search_keywords || '',\n  job_url: job.job_url || '',\n  company_website: job.company_website || '',\n  contract_type: job.contract_type || '',\n  remote_policy: job.remote_policy || '',\n  salary: job.salary || '',\n  company_research: companyResearchObj,\n  description: (job.full_description || '').slice(0, 10000),\n  enriched_at: new Date().toISOString()\n};\n\nreturn [{ json: {\n  ...job,\n  industry: industry,\n  fit_score: null,\n  content: content.slice(0, 8000).replace(/\\\\/g, ' ').replace(/\"/g, "'").replace(/[\\x00-\\x1f\\x7f]/g, ' '),\n  metadata: metadata,\n  sheet_data: { job_id: job.job_id, job_url_hash: job.job_url_hash, title: job.title, company_name: job.company_name, company_url: job.company_url || '', company_website: job.company_website || '', location: job.location || '', remote_policy: job.remote_policy || '', salary: job.salary || '', contract_type: job.contract_type || '', description: 'See Supabase', company_summary: job.company_summary || '', company_research: 'Full data in Supabase', job_pdf_url: job.job_pdf_url || '', status: 'enriched', updated_at: new Date().toISOString() }\n} }];\n"
+        "jsCode": "// Get full data from previous node (Parse Company Summary)\nconst job = $json;\n\nlet companyResearchStr = job.company_research_str || '{}';\n\nconst parts = [\n  'Job Title: ' + (job.title || ''),\n  'Company: ' + (job.company_name || ''),\n  'Location: ' + (job.location || ''),\n  'Description: ' + (job.full_description || '').slice(0, 5000),\n];\n\nlet researchObj = {};\ntry { researchObj = JSON.parse(companyResearchStr); } catch(e) {}\nparts.push('Company Summary: ' + (researchObj.company_summary || job.company_summary || ''));\nparts.push('Products: ' + (researchObj.products || []).join(', '));\nparts.push('Customers: ' + (researchObj.customers || []).join(', '));\nparts.push('Values: ' + (researchObj.values || []).join(', '));\nparts.push('Technical Signals: ' + (researchObj.technical_signals || []).join(', '));\nparts.push('Hiring Signals: ' + (researchObj.hiring_signals || []).join(', '));\nparts.push('Keywords: ' + (researchObj.keywords || []).join(', '));\n\nconst content = parts.filter(Boolean).join('\\n');\n\nconst text = content.toLowerCase();\nlet industry = 'General';\nif (text.includes('retail') || text.includes('e-commerce')) industry = 'Retail';\nelse if (text.includes('defence') || text.includes('navy')) industry = 'Defence';\nelse if (text.includes('health') || text.includes('medical')) industry = 'Healthcare';\nelse if (text.includes('manufacturing') || text.includes('factory')) industry = 'Manufacturing';\nelse if (text.includes('finance') || text.includes('banking') || text.includes('fintech')) industry = 'Finance';\nelse if (text.includes('government') || text.includes('council')) industry = 'Government';\nelse if (text.includes('logistics') || text.includes('supply chain')) industry = 'Supply Chain';\n\nlet companyResearchObj = {};\ntry { companyResearchObj = JSON.parse(companyResearchStr); } catch(e) {}\n\nconst metadata = {\n  search_keywords: job.search_keywords || '',\n  job_url: job.job_url || '',\n  company_website: job.company_website || '',\n  contract_type: job.contract_type || '',\n  remote_policy: job.remote_policy || '',\n  salary: job.salary || '',\n  company_research: companyResearchObj,\n  description: (job.full_description || '').slice(0, 10000),\n  enriched_at: new Date().toISOString()\n};\n\nreturn [{ json: {\n  ...job,\n  industry: industry,\n  fit_score: null,\n    content: content.slice(0, 8000).replace(/\\\\/g, ' ').replace(/\"/g, \"'\").replace(/[\\x00-\\x1f\\x7f]/g, ' '),\n  metadata: metadata,\n  sheet_data: { job_id: job.job_id, job_url_hash: job.job_url_hash, title: job.title, company_name: job.company_name, company_url: job.company_url || '', company_website: job.company_website || '', location: job.location || '', remote_policy: job.remote_policy || '', salary: job.salary || '', contract_type: job.contract_type || '', description: 'See Supabase', company_summary: job.company_summary || '', company_research: 'Full data in Supabase', job_pdf_url: job.job_pdf_url || '', status: 'enriched', updated_at: new Date().toISOString() }\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        16704,
+        16912,
         4624
       ],
       "id": "580d072a-429b-410d-80cd-4019ed82f55c",
@@ -871,8 +871,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        16896,
-        4624
+        17120,
+        4592
       ],
       "id": "bae73667-bf09-4fdc-a860-e2feb788d5e7",
       "name": "Generate Embedding",
@@ -916,7 +916,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        17104,
+        17312,
         4624
       ],
       "id": "51432ae2-132e-4e83-9c79-26c01b7f30ad",
@@ -930,11 +930,87 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        17312,
+        17520,
         4624
       ],
       "id": "96f4a1aa-1fc8-4b1e-8111-cad7e810f05d",
       "name": "Prepare Sheet Data"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{$json.url}}\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true\n}\n",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 2,
+              "batchInterval": 3000
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        15552,
+        4944
+      ],
+      "id": "127defe2-2484-4933-91b0-e1ff7c24b68f",
+      "name": "Scrape Company Page",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "rBgY4HYcYC151dgK",
+          "name": "Firecrawl API Key-Latest-03May26"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nlet combinedMarkdown = '';\n\nfor (const item of items) {\n  const md = item.json.data?.markdown || '';\n  const url = item.json.metadata?.sourceURL || item.json.data?.metadata?.sourceURL || '';\n  if (md) {\n    combinedMarkdown += '\\n\\n--- PAGE: ' + url + ' ---\\n\\n' + md.slice(0, 3000);\n  }\n}\n\nreturn [{ json: {\n  data: { markdown: combinedMarkdown.slice(0, 12000) },\n  scrape_urls_count: items.length,\n  map_urls_found: items[0]?.json.map_urls_found || 0\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        15760,
+        4944
+      ],
+      "id": "94aee8f6-6c80-4dda-8ff3-7d95e6c1e903",
+      "name": "Combine Scraped Pages:"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.company_website.replace(/\\/$/, '') }}/sitemap.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        14992,
+        4928
+      ],
+      "id": "487f44c1-6ceb-4390-b3fe-747b415c16ba",
+      "name": "Fetch Sitemap",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const mapResult = $('Firecrawl Scrape Company').item.json;\nconst mapLinks = mapResult.links || [];\nconst sitemapXml = $json.data || $json || '';\n\n// Extract <loc> URLs from sitemap XML\nlet sitemapUrls = [];\nif (typeof sitemapXml === 'string' && sitemapXml.includes('<loc>')) {\n  const re = /<loc>(https?:\\/\\/[^<]+)<\\/loc>/gi;\n  let m;\n  while ((m = re.exec(sitemapXml)) !== null) sitemapUrls.push(m[1]);\n}\n\n// Combine and dedupe\nconst allLinks = [...new Set([...sitemapUrls, ...mapLinks])];\n\nreturn [{ json: { links: allLinks, sitemap_urls_found: sitemapUrls.length, map_urls_found: mapLinks.length } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        15168,
+        4928
+      ],
+      "id": "4b68e652-2026-49e8-9ea3-c060fff0799c",
+      "name": "Parse Sitemap URLs"
     }
   ],
   "pinData": {},
@@ -954,7 +1030,7 @@
       "main": [
         [
           {
-            "node": "Scrape and Combine Pages",
+            "node": "Scrape Company Page",
             "type": "main",
             "index": 0
           }
@@ -963,13 +1039,7 @@
     },
     "Scrape and Combine Pages": {
       "main": [
-        [
-          {
-            "node": "Prepare Azure Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Extract Full Description": {
@@ -1045,7 +1115,7 @@
       "main": [
         [
           {
-            "node": "Pick Top Pages",
+            "node": "Fetch Sitemap",
             "type": "main",
             "index": 0
           }
@@ -1282,6 +1352,50 @@
           }
         ]
       ]
+    },
+    "Scrape Company Page": {
+      "main": [
+        [
+          {
+            "node": "Combine Scraped Pages:",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Scraped Pages:": {
+      "main": [
+        [
+          {
+            "node": "Prepare Azure Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Sitemap": {
+      "main": [
+        [
+          {
+            "node": "Parse Sitemap URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Sitemap URLs": {
+      "main": [
+        [
+          {
+            "node": "Pick Top Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1293,7 +1407,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "068d4f75-7c08-484b-959d-55517857ae6d",
+  "versionId": "edc43053-7d67-4783-84a4-e1d65ad30bec",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
