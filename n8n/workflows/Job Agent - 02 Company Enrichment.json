@@ -121,11 +121,10 @@
           "conditions": [
             {
               "leftValue": "={{$json.company_website}}",
-              "rightValue": "https://softwareatscale.com.au",
+              "rightValue": "http",
               "operator": {
                 "type": "string",
-                "operation": "notEmpty",
-                "singleValue": true
+                "operation": "contains"
               },
               "id": "has-website"
             }
@@ -139,8 +138,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        13728,
-        5360
+        13744,
+        5344
       ]
     },
     {
@@ -194,8 +193,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        14272,
-        4992
+        14224,
+        5024
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -234,8 +233,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        16720,
-        5232
+        16768,
+        5008
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -253,8 +252,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        16928,
-        5216
+        17008,
+        5008
       ]
     },
     {
@@ -615,8 +614,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        17456,
-        5328
+        18160,
+        6032
       ],
       "credentials": {
         "googleApi": {
@@ -703,7 +702,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const job = $('Extract Full Description').item.json;\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  title: job.title,\n  company_name: job.company_name,\n  company_url: job.company_url || '',\n  company_website: job.company_website || '',\n  location: job.location || '',\n  remote_policy: job.remote_policy || '',\n  salary: job.salary || '',\n  contract_type: job.contract_type || '',\n  description: 'See Supabase',\n  company_summary: 'No company website found',\n  company_research: 'Full data in Supabase',\n  status: 'enriched',\n  updated_at: new Date().toISOString()\n} }];\n"
+        "jsCode": "const job = $('Extract Full Description').item.json;\n\nreturn [{ json: {\n  job_id: job.job_id,\n  job_url_hash: job.job_url_hash,\n  title: job.title,\n  company_name: job.company_name,\n  company_url: job.company_url || '',\n  company_website: job.company_website || '',\n  location: job.location || '',\n  remote_policy: job.remote_policy || '',\n  salary: job.salary || '',\n  contract_type: job.contract_type || '',\n  search_keywords: job.search_keywords || '',\n  job_url: job.job_url || '',\n  full_description: (job.description || '').slice(0, 10000),\n  company_summary: 'No company website found',\n  company_research_str: JSON.stringify({ company_summary: 'No company website found', products: [], customers: [], values: [], technical_signals: [], hiring_signals: [], keywords: [], scraped_urls: [], discovery: { sitemap_source: 'none', sitemap_urls_found: 0, map_urls_found: 0, total_discovered: 0, pages_scraped: 0 } }),\n  job_pdf_url: job.job_pdf_url || '',\n  status: 'enriched',\n  updated_at: new Date().toISOString()\n} }];\n"
       },
       "id": "1571d533-8a77-4523-9bf6-75708463f9e0",
       "name": "Skip Company Enrichment",
@@ -762,8 +761,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        14832,
-        5360
+        14720,
+        5440
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -775,7 +774,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const job = $('Extract Full Description').item.json;\nconst googleMarkdown = $json.data?.markdown || '';\n\nconst excludedDomains = [\n  'seek.com', 'seek.com.au', 'au.seek.com',\n  'linkedin.com', 'indeed.com', 'glassdoor.com',\n  'jora.com', 'adzuna.com', 'careerone.com',\n  'ethicaljobs.com.au', 'google.com', 'googleapis.com',\n  'gstatic.com', 'facebook.com', 'twitter.com', 'x.com',\n  'youtube.com', 'wikipedia.org', 'reddit.com',\n  'duckduckgo.com', 'external-content.duckduckgo.com', 'bing.com',\n  'cdn.seeklearning.com.au', 'help.au.seek.com'\n];\n\nconst urlRegex = /https?:\\/\\/(?:www\\.)?([a-zA-Z0-9.-]+\\.[a-z]{2,})/gi;\nlet match;\nlet companyWebsite = '';\nwhile ((match = urlRegex.exec(googleMarkdown)) !== null) {\n  const domain = match[1].toLowerCase();\n  const isExcluded = excludedDomains.some(ex => domain === ex || domain.endsWith('.' + ex));\n  if (!isExcluded) {\n    companyWebsite = 'https://' + domain;\n    break;\n  }\n}\n\nreturn [{ json: {\n  ...job,\n  company_website: companyWebsite\n} }];\n"
+        "jsCode": "const job = $('Extract Full Description').item.json;\nconst googleMarkdown = $json.data?.markdown || '';\n\nconst excludedDomains = [\n  'seek.com', 'seek.com.au', 'au.seek.com',\n  'linkedin.com', 'indeed.com', 'glassdoor.com',\n  'jora.com', 'adzuna.com', 'careerone.com',\n  'ethicaljobs.com.au', 'google.com', 'googleapis.com',\n  'gstatic.com', 'facebook.com', 'twitter.com', 'x.com',\n  'youtube.com', 'wikipedia.org', 'reddit.com',\n  'duckduckgo.com', 'external-content.duckduckgo.com', 'bing.com',\n  'cdn.seeklearning.com.au', 'help.au.seek.com',\n  'apps.apple.com', 'play.google.com', 'itunes.apple.com',\n  'findglocal.com', 'start.duckduckgo.com', 'duck.ai',\n  'insideduckduckgo.substack.com'\n];\n\nconst urlRegex = /https?:\\/\\/(?:www\\.)?([a-zA-Z0-9.-]+\\.[a-z]{2,})/gi;\nlet match;\nlet companyWebsite = '';\nwhile ((match = urlRegex.exec(googleMarkdown)) !== null) {\n  const domain = match[1].toLowerCase();\n  const isExcluded = excludedDomains.some(ex => domain === ex || domain.endsWith('.' + ex));\n  if (!isExcluded) {\n    companyWebsite = 'https://' + domain;\n    break;\n  }\n}\n\nreturn [{ json: {\n  ...job,\n  company_website: companyWebsite\n} }];\n"
       },
       "id": "8cacbf4b-c78a-44e4-94c6-9bdec0a08c9a",
       "name": "Extract Company URL",
@@ -852,8 +851,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        17488,
-        4720
+        17152,
+        5488
       ],
       "id": "580d072a-429b-410d-80cd-4019ed82f55c",
       "name": "Prepare Vector Data"
@@ -872,8 +871,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        17696,
-        4688
+        17360,
+        5456
       ],
       "id": "bae73667-bf09-4fdc-a860-e2feb788d5e7",
       "name": "Generate Embedding",
@@ -917,8 +916,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        17888,
-        4720
+        17552,
+        5488
       ],
       "id": "51432ae2-132e-4e83-9c79-26c01b7f30ad",
       "name": "Upsert to Supabase",
@@ -931,8 +930,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        18096,
-        4720
+        17760,
+        5488
       ],
       "id": "96f4a1aa-1fc8-4b1e-8111-cad7e810f05d",
       "name": "Prepare Sheet Data"
@@ -1024,7 +1023,7 @@
       "typeVersion": 4.4,
       "position": [
         14480,
-        4992
+        4896
       ],
       "id": "00cf795a-d94a-4da1-b30c-c411fae2156d",
       "name": "Fetch Robots.txt",
@@ -1271,7 +1270,7 @@
       "main": [
         [
           {
-            "node": "Update Job Row",
+            "node": "Prepare Vector Data",
             "type": "main",
             "index": 0
           }
@@ -1512,7 +1511,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "51857eb0-f535-4263-98e8-016bd235df57",
+  "versionId": "e7e04e45-8eb2-47ac-98dc-cf9fd0b4eadd",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
