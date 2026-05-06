@@ -14,7 +14,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $('Read Enriched Jobs').all();\nconst enriched = items.filter(i => (i.json.status || '').trim().toLowerCase() === 'enriched');\nif (enriched.length === 0) throw new Error('No enriched jobs found');\nreturn enriched.slice(0, 5).map(i => ({ json: i.json }));\n"
+        "jsCode": "const items = $('Read Enriched Jobs').all();\nconst enriched = items.filter(i => (i.json.status || '').trim().toLowerCase() === 'enriched');\nif (enriched.length === 0) throw new Error('No enriched jobs found');\n\nconst keywordToTab = {\n  'AI Engineer': 'Master Resume - AI Engineer',\n  'AI ML Engineer': 'Master Resume - AI Engineer',\n  'Agentic AI Automation Engineer': 'Master Resume - AI Engineer',\n  'Process Automation Engineer': 'Master Resume - AI Engineer',\n  'AI Adoption Specialist': 'Master Resume - AI Engineer',\n  'AI Adoption Manager': 'Master Resume - AI Engineer',\n  'ISO 9001 Quality Manager': 'Master Resume - Quality Manager',\n  'Quality Assurance Manager': 'Master Resume - Quality Manager',\n  'Quality Manager': 'Master Resume - Quality Manager',\n  'Continuous Improvement Specialist': 'Master Resume - Process Improvement',\n  'Continuous Improvement Manager': 'Master Resume - Process Improvement',\n  'Lean Six Sigma': 'Master Resume - Process Improvement',\n  'Process Improvement Analyst': 'Master Resume - Process Analyst',\n  'Operations Improvement Manager': 'Master Resume - Process Analyst',\n  'Operations Improvement Analyst': 'Master Resume - Process Analyst',\n  'Change Manager': 'Master Resume - Change Manager'\n};\n\nreturn enriched.slice(0, 5).map(i => {\n  const kw = (i.json.search_keywords || '').trim();\n  const resume_tab = keywordToTab[kw] || 'Master Resume';\n  return { json: { ...i.json, resume_tab } };\n});\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -65,7 +65,7 @@
         },
         "sheetName": {
           "__rl": true,
-          "value": "Master Resume",
+          "value": "={{ $('Filter Enriched Only').first().json.resume_tab }}",
           "mode": "name"
         },
         "options": {}
@@ -382,22 +382,12 @@
         ]
       ]
     },
-    "Filter Enriched Only": {
-      "main": [
-        [
-          {
-            "node": "Fetch from Supabase",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
+
     "Read Enriched Jobs": {
       "main": [
         [
           {
-            "node": "Read Master Resume",
+            "node": "Filter Enriched Only",
             "type": "main",
             "index": 0
           }
@@ -543,7 +533,18 @@
       "main": [
         [
           {
-            "node": "Filter Enriched Only",
+            "node": "Fetch from Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Enriched Only": {
+      "main": [
+        [
+          {
+            "node": "Read Master Resume",
             "type": "main",
             "index": 0
           }
