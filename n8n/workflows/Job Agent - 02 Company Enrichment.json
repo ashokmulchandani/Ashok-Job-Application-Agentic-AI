@@ -751,7 +751,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"url\": \"https://duckduckgo.com/?q={{encodeURIComponent($json.company_name + ' official website')}}&num=5\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true\n}",
+        "jsonBody": "={\n  \"url\": \"https://duckduckgo.com/?q={{encodeURIComponent($json.company_name + ' official website')}}&num=5\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true,\n  \"waitFor\": 3000\n}\n",
         "options": {
           "timeout": 30000
         }
@@ -1014,7 +1014,7 @@
     },
     {
       "parameters": {
-        "url": "={{ $('Has Company Website?').item.json.company_website.replace(/\\/$/, '') }}/robots.txt\n",
+        "url": "={{ $json.links[0].split('/').slice(0,3).join('/') }}/robots.txt\n",
         "options": {
           "timeout": 10000
         }
@@ -1511,7 +1511,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "e7e04e45-8eb2-47ac-98dc-cf9fd0b4eadd",
+  "versionId": "f6553476-b435-476b-a1ae-e194fb227ded",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
