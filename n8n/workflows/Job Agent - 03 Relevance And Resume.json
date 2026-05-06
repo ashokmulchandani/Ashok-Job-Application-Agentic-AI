@@ -342,7 +342,7 @@
     },
     {
       "parameters": {
-        "url": "=https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/job_applications?job_id=eq.{{$json.job_id}}&select=content,metadata",
+        "url": "=https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/job_applications?job_id=eq.{{ $('Filter Enriched Only').item.json.job_id }}&select=content,metadata",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
