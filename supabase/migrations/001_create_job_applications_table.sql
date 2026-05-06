@@ -98,15 +98,15 @@ begin
   values (p_job_id, p_title, p_company_name, p_location, p_industry, p_status, p_fit_score, p_content, p_metadata, p_embedding, now())
   on conflict (job_id)
   do update set
-    title = excluded.title,
-    company_name = excluded.company_name,
-    location = excluded.location,
-    industry = excluded.industry,
-    status = excluded.status,
-    fit_score = excluded.fit_score,
-    content = excluded.content,
-    metadata = excluded.metadata,
-    embedding = excluded.embedding,
+    title = COALESCE(excluded.title, job_applications.title),
+    company_name = COALESCE(excluded.company_name, job_applications.company_name),
+    location = COALESCE(excluded.location, job_applications.location),
+    industry = COALESCE(excluded.industry, job_applications.industry),
+    status = COALESCE(excluded.status, job_applications.status),
+    fit_score = COALESCE(excluded.fit_score, job_applications.fit_score),
+    content = CASE WHEN excluded.content = '' THEN job_applications.content ELSE excluded.content END,
+    metadata = COALESCE(job_applications.metadata, '{}'::jsonb) || COALESCE(excluded.metadata, '{}'::jsonb),
+    embedding = COALESCE(excluded.embedding, job_applications.embedding),
     updated_at = now();
 end;
 $$;

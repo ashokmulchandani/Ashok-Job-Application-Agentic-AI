@@ -247,7 +247,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Supabase returns {} with return=minimal, so get data from Parse Resume\nconst job = $('Parse Resume').item.json;\nreturn [{ json: job }];\n"
+        "jsCode": "// Only output sheet-relevant fields - heavy content lives in Supabase\nconst job = $('Parse Resume').item.json;\nreturn [{ json: {\n  job_id: job.job_id,\n  status: job.status,\n  fit_score: job.fit_score,\n  fit_decision: job.fit_decision,\n  fit_rationale: job.fit_rationale,\n  matched_requirements: job.matched_requirements,\n  missing_requirements: job.missing_requirements,\n  resume_markdown: 'See Supabase',\n  resume_html: 'See Supabase',\n  updated_at: job.updated_at\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -260,7 +260,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const job = $json;\nreturn [{ json: {\n  ...job,\n  status: job.fit.fit_score >= 65 ? 'needs_review' : 'rejected',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
+        "jsCode": "const job = $json;\nreturn [{ json: {\n  job_id: job.job_id,\n  status: job.fit.fit_score >= 65 ? 'needs_review' : 'rejected',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
       },
       "id": "2b94ea90-3e85-4603-9ae4-76ceb3b8f78c",
       "name": "Score < 80 - No Resume",
