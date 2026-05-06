@@ -8,8 +8,8 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        9552,
-        7920
+        11024,
+        8992
       ]
     },
     {
@@ -19,10 +19,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        10480,
-        7552
+        11920,
+        8816
       ],
-      "id": "212a6657-059c-4a1c-b22a-b10ce7d6b502",
+      "id": "acd9c57b-5a00-476f-bcc3-d3d30fd2465f",
       "name": "Filter Enriched Only"
     },
     {
@@ -40,13 +40,13 @@
         },
         "options": {}
       },
-      "id": "c04d703b-4cf3-4f74-b6b7-3a4d3c63b112",
+      "id": "24a361f6-63a4-4b21-a354-2754285fdc96",
       "name": "Read Enriched Jobs",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        9968,
-        7632
+        11392,
+        8640
       ],
       "credentials": {
         "googleApi": {
@@ -70,13 +70,13 @@
         },
         "options": {}
       },
-      "id": "49028056-ea86-4f74-9015-0bae2ef9f28d",
+      "id": "9eb7aa0e-6092-4596-98ff-3baa70c7dff9",
       "name": "Read Master Resume",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        10256,
-        7584
+        11696,
+        8592
       ],
       "credentials": {
         "googleApi": {
@@ -89,13 +89,13 @@
       "parameters": {
         "jsCode": "const job = $('Filter Enriched Only').item.json;\nconst allRows = $('Read Master Resume').all().map(i => i.json);\n\n// Get full data from Supabase\nlet supabaseData = {};\ntry {\n  const supaResult = $('Fetch from Supabase').item.json;\n  // Supabase returns array, get first item\n  const record = Array.isArray(supaResult) ? supaResult[0] : supaResult;\n  if (record && record.metadata) {\n    supabaseData = typeof record.metadata === 'string' ? JSON.parse(record.metadata) : record.metadata;\n  }\n} catch(e) {}\n\n// Use Supabase description if available, fallback to Sheet\nconst description = supabaseData.description || job.description || '';\n\n// Use Supabase company_research if available, fallback to Sheet\nlet companyResearch = supabaseData.company_research || job.company_research || '';\nif (typeof companyResearch === 'string' && companyResearch.startsWith('{')) {\n  try { companyResearch = JSON.parse(companyResearch); } catch(e) {}\n}\n\n// Build master resume\nconst resumeRows = allRows.filter(r => r.section && r.section.trim());\nconst seen = new Set();\nconst uniqueRows = resumeRows.filter(r => {\n  const key = r.section.trim();\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\nconst skipSections = new Set(['role_to_resume_mapping']);\nconst masterResume = uniqueRows\n  .filter(r => !skipSections.has(r.section) && (r.content || '').trim())\n  .map(r => (r.section || '').toUpperCase() + ':\\n' + (r.content || ''))\n  .join('\\n\\n');\n\nif (masterResume.length < 100) throw new Error('Resume content too short.');\n\nreturn [{ json: {\n  ...job,\n  description: description,\n  company_research: companyResearch,\n  master_resume: masterResume.slice(0, 15000),\n  selected_resume_type: 'unified'\n} }];\n"
       },
-      "id": "6306913c-c08c-4393-8d89-cda974ee758e",
+      "id": "76c4d5ee-85ba-47ac-a545-4da63c6c107e",
       "name": "Prepare Fit Input",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        10704,
-        7536
+        12128,
+        8544
       ]
     },
     {
@@ -109,13 +109,13 @@
         "jsonBody": "={{ $json.body_string }}",
         "options": {}
       },
-      "id": "3864153f-33a7-421e-8efa-f9a2330ff15d",
+      "id": "7a9a47ca-2b59-467d-b65b-51ac47ef092e",
       "name": "Azure OpenAI Fit Score",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        10944,
-        7536
+        12368,
+        8544
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -128,13 +128,13 @@
       "parameters": {
         "jsCode": "const job = $('Prepare Fit Input').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet fit;\ntry { fit = JSON.parse(raw); } catch (e) { fit = { fit_score: 0, decision: 'needs_review', parse_error: true }; }\nreturn [{ json: { ...job, fit } }];"
       },
-      "id": "75083d0e-2b28-45b2-bb7d-d216a6cff2fc",
+      "id": "3ed27e24-8431-4d23-83eb-50b6f2bb9bd6",
       "name": "Parse Fit Score",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        11184,
-        7536
+        12608,
+        8544
       ]
     },
     {
@@ -157,13 +157,13 @@
         },
         "options": {}
       },
-      "id": "4a9e57c1-5e6d-49f2-ae95-b495aecce67f",
+      "id": "fac09189-d68b-48e5-9561-88fa0ef00e1c",
       "name": "Score >= 80?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        11424,
-        7536
+        12848,
+        8544
       ]
     },
     {
@@ -177,13 +177,13 @@
         "jsonBody": "={{ $json.body_string }}",
         "options": {}
       },
-      "id": "82a9f5c9-450e-4524-a000-61afdbf4af9b",
+      "id": "6f5dac2a-c549-452a-a47b-c5477e0ab085",
       "name": "Azure OpenAI Generate Resume",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        11664,
-        7456
+        13088,
+        8464
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -196,13 +196,13 @@
       "parameters": {
         "jsCode": "const job = $('Parse Fit Score').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet resume;\ntry { resume = JSON.parse(raw); } catch (e) { resume = { parse_error: true, document_title: `Resume - ${job.title} - ${job.company_name}` }; }\nreturn [{ json: {\n  ...job,\n  resume_markdown: resume.resume_markdown || '',\n  resume_html: resume.resume_html || '',\n  tailoring_rationale: resume.tailoring_rationale || '',\n  status: 'needs_review',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
       },
-      "id": "29d8dc6f-817f-487d-9e83-0edf5879e845",
+      "id": "d8a613eb-a758-4840-a086-217c71a00089",
       "name": "Parse Resume",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        11904,
-        7456
+        13328,
+        8464
       ]
     },
     {
@@ -238,10 +238,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        12352,
-        7360
+        13776,
+        8368
       ],
-      "id": "5ecf3f70-bb24-41d7-becd-07c42f47350e",
+      "id": "182db095-37cd-4501-98cc-40fa5d65e695",
       "name": "Upsert Resume to Supabase",
       "onError": "continueErrorOutput"
     },
@@ -252,23 +252,23 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        12240,
-        7808
+        13664,
+        8816
       ],
-      "id": "acac93d9-b676-435a-956b-d5c42581fc49",
+      "id": "8299ee9d-c41c-426d-b45d-a200b7fb44ca",
       "name": "Restore Job Data"
     },
     {
       "parameters": {
         "jsCode": "const job = $json;\nreturn [{ json: {\n  job_id: job.job_id,\n  status: job.fit.fit_score >= 65 ? 'needs_review' : 'rejected',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
       },
-      "id": "2b94ea90-3e85-4603-9ae4-76ceb3b8f78c",
+      "id": "907efb1c-bcbd-4cf9-8bb4-93c6262b59f6",
       "name": "Score < 80 - No Resume",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        11664,
-        7664
+        13088,
+        8672
       ]
     },
     {
@@ -287,23 +287,438 @@
         },
         "columns": {
           "mappingMode": "autoMapInputData",
-          "value": null,
+          "value": {},
           "matchingColumns": [
             "job_id"
           ],
-          "schema": [],
+          "schema": [
+            {
+              "id": "serial_no",
+              "displayName": "serial_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_id",
+              "displayName": "job_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_url_hash",
+              "displayName": "job_url_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_url",
+              "displayName": "job_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_url",
+              "displayName": "company_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_website",
+              "displayName": "company_website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "remote_policy",
+              "displayName": "remote_policy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salary",
+              "displayName": "salary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contract_type",
+              "displayName": "contract_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "posted_at",
+              "displayName": "posted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apply_url",
+              "displayName": "apply_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "search_keywords",
+              "displayName": "search_keywords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_score",
+              "displayName": "fit_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_decision",
+              "displayName": "fit_decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit_rationale",
+              "displayName": "fit_rationale",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "matched_requirements",
+              "displayName": "matched_requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "missing_requirements",
+              "displayName": "missing_requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_summary",
+              "displayName": "company_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_research",
+              "displayName": "company_research",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_markdown",
+              "displayName": "resume_markdown",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_html",
+              "displayName": "resume_html",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resume_doc_url",
+              "displayName": "resume_doc_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_pdf_url",
+              "displayName": "job_pdf_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "applied_at",
+              "displayName": "applied_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error",
+              "displayName": "error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "scrape_url",
+              "displayName": "scrape_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "screenshot_base64",
+              "displayName": "screenshot_base64",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "master_resume",
+              "displayName": "master_resume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "selected_resume_type",
+              "displayName": "selected_resume_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fit",
+              "displayName": "fit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tailoring_rationale",
+              "displayName": "tailoring_rationale",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_research_note",
+              "displayName": "company_research_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "_empty",
+              "displayName": "_empty",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "search_url",
+              "displayName": "search_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "_no_new_jobs",
+              "displayName": "_no_new_jobs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
         "options": {}
       },
-      "id": "9b892c86-9816-4a12-a602-efdbc5a71ab1",
+      "id": "1e18db48-7b5c-46da-8700-2211d0d7cb17",
       "name": "Update Google Sheets",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        12544,
-        7600
+        13968,
+        8608
       ],
       "credentials": {
         "googleApi": {
@@ -319,10 +734,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        10496,
-        8144
+        11920,
+        9152
       ],
-      "id": "7b9a4570-3cc2-4bd1-8c94-77382851c461",
+      "id": "cd9e6e98-13bd-479b-bff0-77b2c41d97b2",
       "name": "Prepare Fit Request",
       "onError": "continueErrorOutput"
     },
@@ -333,16 +748,16 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        11216,
-        8064
+        12640,
+        9072
       ],
-      "id": "6913a08f-81ff-42ea-9738-52e52c3e9fc2",
+      "id": "78e70ecf-7d09-417c-8c13-8a3bdb937874",
       "name": "Prepare Resume Request",
       "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "url": "=https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/job_applications?job_id=eq.{{ $('Filter Enriched Only').item.json.job_id }}&select=content,metadata",
+        "url": "=https://ftbxxcgaiisvzmaijyhd.supabase.co/rest/v1/job_applications?job_id=eq.{{ $('Filter Enriched Only').item.json.job_id }}&select=content,metadata\n",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -361,10 +776,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        8976,
-        6592
+        10400,
+        7600
       ],
-      "id": "99066fed-f4b1-485d-9381-463eeea649fb",
+      "id": "8c319bbe-5ac0-4a33-8f1f-0e194113e92b",
       "name": "Fetch from Supabase",
       "onError": "continueErrorOutput"
     }
@@ -382,7 +797,6 @@
         ]
       ]
     },
-
     "Read Enriched Jobs": {
       "main": [
         [
@@ -572,7 +986,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "5da0a242-b732-4135-bdb6-4862899431dd",
+  "versionId": "52917404-a2ca-4ae1-9ffd-b6ca9436eb41",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
