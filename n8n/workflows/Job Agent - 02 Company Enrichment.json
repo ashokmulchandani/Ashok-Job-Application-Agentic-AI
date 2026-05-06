@@ -8,19 +8,19 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        12448,
-        5408
+        11584,
+        5520
       ]
     },
     {
       "parameters": {
-        "jsCode": "const mapResult = $json;\nconst mapLinks = mapResult.links || [];\n\n// Get company_website from upstream nodes\nlet companyWebsite = '';\ntry { companyWebsite = $('Extract Full Description').item.json.company_website || ''; } catch(e) {}\nif (!companyWebsite) {\n  try { companyWebsite = $('Extract Company URL').item.json.company_website || ''; } catch(e) {}\n}\n\nconst baseUrl = companyWebsite.replace(/\\/$/, '');\n\n// Priority patterns for picking best pages\nconst priorityPatterns = [/about/i, /team/i, /product/i, /service/i, /career/i, /what-we-do/i, /our-story/i, /innovation/i, /solution/i, /fleet/i, /commitment/i, /sustainability/i, /esg/i];\n\nconst urls = [baseUrl];\n\n// First pass: priority pages from /map results\nfor (const link of mapLinks) {\n  if (urls.length >= 8) break;\n  const isHome = link === baseUrl || link === baseUrl + '/';\n  const isPriority = priorityPatterns.some(p => p.test(link));\n  if (!isHome && isPriority && !urls.includes(link) && !link.endsWith('.pdf')) {\n    urls.push(link);\n  }\n}\n\n// Second pass: fill up to 5 minimum\nif (urls.length < 5) {\n  for (const link of mapLinks) {\n    if (urls.length >= 5) break;\n    if (!urls.includes(link) && !link.endsWith('.pdf') && !link.includes('/404')) {\n      urls.push(link);\n    }\n  }\n}\n\n// Output multiple items - one per URL for HTTP Request node to process\nreturn urls.map(url => ({ json: { url, scrape_urls_count: urls.length, map_urls_found: mapLinks.length } }));\n"
+        "jsCode": "const input = $json;\nconst allLinks = input.links || [];\n\n// Get company_website\nlet companyWebsite = '';\ntry { companyWebsite = $('Extract Full Description').item.json.company_website || ''; } catch(e) {}\nconst baseUrl = companyWebsite.replace(/\\/$/, '');\n\n// Priority patterns\nconst priorityPatterns = [/about/i, /team/i, /product/i, /service/i, /career/i, /what-we-do/i, /our-story/i, /innovation/i, /solution/i, /fleet/i, /commitment/i, /sustainability/i, /esg/i];\n\nconst urls = [baseUrl];\n\n// First pass: priority pages\nfor (const link of allLinks) {\n  if (urls.length >= 8) break;\n  const isHome = link === baseUrl || link === baseUrl + '/';\n  const isPriority = priorityPatterns.some(p => p.test(link));\n  if (!isHome && isPriority && !urls.includes(link) && !link.endsWith('.pdf')) {\n    urls.push(link);\n  }\n}\n\n// Second pass: fill up to 5 minimum\nif (urls.length < 5) {\n  for (const link of allLinks) {\n    if (urls.length >= 5) break;\n    if (!urls.includes(link) && !link.endsWith('.pdf') && !link.includes('/404')) {\n      urls.push(link);\n    }\n  }\n}\n\n// Output multiple items for Scrape Company Page\nreturn urls.map(url => ({ json: {\n  url,\n  scrape_urls_count: urls.length,\n  map_urls_found: input.map_urls_found || 0,\n  sitemap_source: input.sitemap_source || 'none',\n  sitemap_urls_found: input.sitemap_urls_found || 0,\n  total_discovered: input.total_discovered || 0\n} }));\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        15344,
-        4944
+        15872,
+        5008
       ],
       "id": "704b93b8-1d4a-4687-ba18-6a4fe8afbffd",
       "name": "Pick Top Pages"
@@ -32,8 +32,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        15664,
-        4752
+        16192,
+        4816
       ],
       "id": "a87af5ee-3e49-4da2-89c3-ddb8867d8b1e",
       "name": "Scrape and Combine Pages"
@@ -47,8 +47,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        14304,
-        5248
+        13440,
+        5360
       ]
     },
     {
@@ -69,8 +69,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        14064,
-        5248
+        13200,
+        5360
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -98,8 +98,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        14064,
-        5472
+        13200,
+        5584
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -121,10 +121,11 @@
           "conditions": [
             {
               "leftValue": "={{$json.company_website}}",
-              "rightValue": "",
+              "rightValue": "https://softwareatscale.com.au",
               "operator": {
                 "type": "string",
-                "operation": "notEmpty"
+                "operation": "notEmpty",
+                "singleValue": true
               },
               "id": "has-website"
             }
@@ -138,8 +139,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        14592,
-        5248
+        13728,
+        5360
       ]
     },
     {
@@ -171,8 +172,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        14560,
-        5600
+        13696,
+        5712
       ]
     },
     {
@@ -193,8 +194,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        14784,
-        4928
+        14272,
+        4992
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -211,8 +212,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        15952,
-        4944
+        16480,
+        5008
       ],
       "id": "da3a7fa3-470f-4e99-93a8-430b19272c14",
       "name": "Prepare Azure Request"
@@ -233,8 +234,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        16192,
-        5168
+        16720,
+        5232
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -252,8 +253,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        16400,
-        5152
+        16928,
+        5216
       ]
     },
     {
@@ -614,8 +615,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        16880,
-        5232
+        17456,
+        5328
       ],
       "credentials": {
         "googleApi": {
@@ -733,8 +734,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        13424,
-        5232
+        12560,
+        5344
       ],
       "credentials": {
         "googleApi": {
@@ -827,8 +828,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        13712,
-        5392
+        12848,
+        5504
       ]
     },
     {
@@ -838,8 +839,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        13872,
-        5248
+        13008,
+        5360
       ],
       "id": "f932264f-8e1b-4945-aaca-e75322239ffb",
       "name": "Prepare Job Scrape"
@@ -851,8 +852,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        16912,
-        4624
+        17488,
+        4720
       ],
       "id": "580d072a-429b-410d-80cd-4019ed82f55c",
       "name": "Prepare Vector Data"
@@ -871,8 +872,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        17120,
-        4592
+        17696,
+        4688
       ],
       "id": "bae73667-bf09-4fdc-a860-e2feb788d5e7",
       "name": "Generate Embedding",
@@ -916,8 +917,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        17312,
-        4624
+        17888,
+        4720
       ],
       "id": "51432ae2-132e-4e83-9c79-26c01b7f30ad",
       "name": "Upsert to Supabase",
@@ -930,8 +931,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        17520,
-        4624
+        18096,
+        4720
       ],
       "id": "96f4a1aa-1fc8-4b1e-8111-cad7e810f05d",
       "name": "Prepare Sheet Data"
@@ -958,8 +959,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        15552,
-        4944
+        16080,
+        5008
       ],
       "id": "127defe2-2484-4933-91b0-e1ff7c24b68f",
       "name": "Scrape Company Page",
@@ -973,27 +974,27 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nlet combinedMarkdown = '';\n\nfor (const item of items) {\n  const md = item.json.data?.markdown || '';\n  const url = item.json.metadata?.sourceURL || item.json.data?.metadata?.sourceURL || '';\n  if (md) {\n    combinedMarkdown += '\\n\\n--- PAGE: ' + url + ' ---\\n\\n' + md.slice(0, 3000);\n  }\n}\n\nreturn [{ json: {\n  data: { markdown: combinedMarkdown.slice(0, 12000) },\n  scrape_urls_count: items.length,\n  map_urls_found: items[0]?.json.map_urls_found || 0\n} }];\n"
+        "jsCode": "const items = $input.all();\nlet combinedMarkdown = '';\n\nfor (const item of items) {\n  const md = item.json.data?.markdown || '';\n  const url = item.json.data?.metadata?.sourceURL || '';\n  if (md) {\n    combinedMarkdown += '\\n\\n--- PAGE: ' + url + ' ---\\n\\n' + md.slice(0, 3000);\n  }\n}\n\nreturn [{ json: {\n  data: { markdown: combinedMarkdown.slice(0, 12000) },\n  scrape_urls_count: items.length,\n  map_urls_found: items[0]?.json.map_urls_found || 0\n} }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        15760,
-        4944
+        16288,
+        5008
       ],
       "id": "94aee8f6-6c80-4dda-8ff3-7d95e6c1e903",
       "name": "Combine Scraped Pages:"
     },
     {
       "parameters": {
-        "url": "={{ $json.company_website.replace(/\\/$/, '') }}/sitemap.xml",
+        "url": "={{ $('Parse Robots Sitemap').item.json.sitemap_url }}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        14992,
-        4928
+        15344,
+        4992
       ],
       "id": "487f44c1-6ceb-4390-b3fe-747b415c16ba",
       "name": "Fetch Sitemap",
@@ -1006,11 +1007,71 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        15168,
-        4928
+        15616,
+        4992
       ],
       "id": "4b68e652-2026-49e8-9ea3-c060fff0799c",
       "name": "Parse Sitemap URLs"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Has Company Website?').item.json.company_website.replace(/\\/$/, '') }}/robots.txt\n",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        14480,
+        4992
+      ],
+      "id": "00cf795a-d94a-4da1-b30c-c411fae2156d",
+      "name": "Fetch Robots.txt",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const robotsTxt = $json.data || '';\nconst mapResult = $('Firecrawl Scrape Company').item.json;\nconst mapLinks = mapResult.links || [];\n\nlet companyWebsite = '';\ntry { companyWebsite = $('Extract Full Description').item.json.company_website || ''; } catch(e) {}\nconst baseUrl = companyWebsite.replace(/\\/$/, '');\n\n// Try both www and non-www for sitemap\nconst baseUrls = [baseUrl];\nif (baseUrl.includes('://www.')) {\n  baseUrls.push(baseUrl.replace('://www.', '://'));\n} else {\n  baseUrls.push(baseUrl.replace('://', '://www.'));\n}\n\n// Extract sitemap URL from robots.txt\nlet sitemapUrl = '';\nif (typeof robotsTxt === 'string') {\n  const sm = robotsTxt.match(/Sitemap:\\s*(https?:\\/\\/[^\\s]+)/i);\n  if (sm) sitemapUrl = sm[1].trim();\n}\n\n// If no sitemap in robots.txt, try common paths\nconst sitemapUrls = [];\nif (sitemapUrl) {\n  sitemapUrls.push(sitemapUrl);\n} else {\n  for (const bu of baseUrls) {\n    sitemapUrls.push(bu + '/sitemap.xml');\n    sitemapUrls.push(bu + '/sitemap_index.xml');\n  }\n}\n\nreturn [{ json: {\n  sitemap_url: sitemapUrls[0] || baseUrl + '/sitemap.xml',\n  all_sitemap_urls: sitemapUrls,\n  map_links: mapLinks,\n  base_url: baseUrl\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        14672,
+        4992
+      ],
+      "id": "86d4ffc1-ed4e-4dd0-b898-950d8bbf2545",
+      "name": "Parse Robots Sitemap"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.sitemap_url }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        14848,
+        4992
+      ],
+      "id": "4c8bd26f-e29f-411d-aeeb-6d90ee803019",
+      "name": "Fetch Sitemap XML",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sitemapXml = $json.data || $json.body || '';\nconst prevData = $('Parse Robots Sitemap').item.json;\nconst mapLinks = prevData.map_links || [];\nconst baseUrl = prevData.base_url || '';\n\n// Extract <loc> URLs from sitemap XML\nlet sitemapUrls = [];\nif (typeof sitemapXml === 'string' && sitemapXml.includes('<loc>')) {\n  const re = /<loc>(https?:\\/\\/[^<]+)<\\/loc>/gi;\n  let m;\n  while ((m = re.exec(sitemapXml)) !== null) {\n    const url = m[1];\n    if (!url.endsWith('.pdf') && !url.includes('/404')) {\n      sitemapUrls.push(url);\n    }\n  }\n}\n\n// Combine and dedupe sitemap + map URLs\nconst allLinks = [...new Set([...sitemapUrls, ...mapLinks])];\n\nreturn [{ json: {\n  links: allLinks,\n  sitemap_source: sitemapUrls.length > 0 ? prevData.sitemap_url : 'none',\n  sitemap_urls_found: sitemapUrls.length,\n  map_urls_found: mapLinks.length,\n  total_discovered: allLinks.length\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        15040,
+        4992
+      ],
+      "id": "d942e706-d89d-4ec0-919e-fbe9fbed03d8",
+      "name": "Merge Sitemap + Map URLs"
     }
   ],
   "pinData": {},
@@ -1115,7 +1176,7 @@
       "main": [
         [
           {
-            "node": "Fetch Sitemap",
+            "node": "Fetch Robots.txt",
             "type": "main",
             "index": 0
           }
@@ -1396,6 +1457,50 @@
           }
         ]
       ]
+    },
+    "Fetch Robots.txt": {
+      "main": [
+        [
+          {
+            "node": "Parse Robots Sitemap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Robots Sitemap": {
+      "main": [
+        [
+          {
+            "node": "Fetch Sitemap XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Sitemap XML": {
+      "main": [
+        [
+          {
+            "node": "Merge Sitemap + Map URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Sitemap + Map URLs": {
+      "main": [
+        [
+          {
+            "node": "Fetch Sitemap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1407,7 +1512,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "edc43053-7d67-4783-84a4-e1d65ad30bec",
+  "versionId": "51857eb0-f535-4263-98e8-016bd235df57",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
