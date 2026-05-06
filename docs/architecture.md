@@ -95,11 +95,15 @@ Read discovered jobs → Filter Discovered Only → Prepare Job Scrape (set scra
 
 Extract Full Description → Extract company_website from JD
 → Has Company Website?
-    Yes → Firecrawl Map → Pick Top Pages → Scrape & Combine → Prepare Azure Request
-        → Azure OpenAI Company Summary → Parse Company Summary
+    Yes → Firecrawl /map → Fetch Robots.txt → Parse Robots Sitemap
+        → Fetch Sitemap XML → Merge Sitemap + Map URLs
+        → Pick Top Pages (10 URLs, priority + exclude patterns)
+        → Scrape Company Page (HTTP Request, batched: 2 items, 3s interval)
+        → Combine Scraped Pages (2000 chars/page, 20KB total cap)
+        → Prepare Azure Request → Azure OpenAI Company Summary → Parse Company Summary
         → Prepare Vector Data → Generate Embedding → Upsert to Supabase
         → Prepare Sheet Data → Update Sheet
-    No  → DuckDuckGo search → Extract Company URL → retry or Skip
+    No  → DuckDuckGo search (waitFor: 3000ms) → Extract Company URL → retry or Skip
 ```
 
 **Key decisions:**
@@ -111,6 +115,10 @@ Extract Full Description → Extract company_website from JD
 - Azure request text is sanitized (control characters stripped) to prevent JSON parse errors
 - Screenshot flow runs in parallel, doesn't block main enrichment
 - Company website extraction excludes job board domains (seek, linkedin, etc.)
+- Robots.txt → sitemap discovery chain runs before URL selection
+- `Pick Top Pages` selects 10 URLs using priority patterns (about, clients, services, specialisations, markets) and excludes low-value pages (blog, job listings, video, FAQ)
+- `Scrape Company Page` uses HTTP Request node with batching (2 items, 3s interval) — `fetch()` not available on n8n Cloud
+- `Combine Scraped Pages` caps at 2000 chars/page, 20KB total
 
 ### WF03: Relevance And Resume
 
@@ -220,9 +228,18 @@ The system uses a **unified master resume** approach:
 
 ```
 Job Description → Extract company_website URL
-→ Firecrawl /map endpoint → discover site pages
-→ Pick priority pages (about, products, services, careers)
-→ Scrape & combine markdown (up to 12KB)
+→ Firecrawl /map endpoint → discover site pages (limit: 5)
+→ Fetch Robots.txt → Parse Sitemap URL → Fetch Sitemap XML
+→ Merge Sitemap + Map URLs (deduplicated)
+→ Pick Top Pages (10 URLs):
+    Priority patterns: /about/, /client/, /service/, /product/, /specialisation/,
+                       /market/, /impact/, /solution/, /technology/, /platform/,
+                       /capabilities/, /values/, /culture/, /innovation/
+    Exclude patterns:  /blog/, /news/, /job-/, /tv/, /video/, /podcast/,
+                       /faq/, /login/, /privacy/, /test/, /how-to-/
+    Fallback: shallow pages (≤ 2 path segments) not matching exclude patterns
+→ Scrape Company Page (HTTP Request, batched: 2 items, 3s interval)
+→ Combine Scraped Pages (2000 chars/page, 20KB total cap)
 → Azure OpenAI GPT-4o-mini extracts structured research:
     {
       company_summary: "2-3 sentences",

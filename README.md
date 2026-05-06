@@ -41,6 +41,7 @@ Firecrawl (Seek Job Boards) → n8n Workflows → Azure OpenAI GPT-4o (Scoring +
 - **HTML Resume Output** — Google Sans Text font, 10pt body, 13pt bold headers, #1B1C1D color, 114% line-height, disc bullets
 - **5 SMART Project Examples** — Hypothetical but realistic AI/automation projects tailored to target company's industry, written in first person with specific metrics
 - **Seek Full Description Scraping** — Firecrawl waitFor: 5000ms ensures JS-rendered content loads completely
+- **Smart URL Selection** — Pick Top Pages uses priority patterns (about, clients, services, specialisations) and exclude patterns (blog, job listings, video) to select 10 high-value pages from sitemap + /map results
 - **Job Screenshots** — Full-page screenshots saved to Google Drive with hyperlink in sheet
 - **Dual Output** — Both HTML file (pixel-perfect formatting) and Google Doc (editable text) created per job
 - **Supabase Vector Store** — Full job data (description, company research, resume, embeddings) stored in Supabase; Google Sheet kept lightweight with pointers
@@ -237,11 +238,13 @@ Manual Trigger → Build Search URLs → Firecrawl Scrape Search Page → Extrac
 Manual Trigger → Read Discovered Jobs → Filter Discovered Only → Prepare Job Scrape
 → [Firecrawl Scrape Job Page (waitFor:5s), Firecrawl Screenshot Job Page] (parallel)
 → Extract Full Description → Has Company Website?
-  → Yes: Firecrawl Map Company → Pick Top Pages → Scrape and Combine Pages
+  → Yes: Firecrawl Map Company → Fetch Robots.txt → Parse Robots Sitemap
+         → Fetch Sitemap XML → Merge Sitemap + Map URLs → Pick Top Pages (10 URLs)
+         → Scrape Company Page (HTTP Request, batched) → Combine Scraped Pages
          → Prepare Azure Request → Azure OpenAI Company Summary → Parse Company Summary
          → Prepare Vector Data → Generate Embedding → Upsert to Supabase
          → Prepare Sheet Data → Update Job Row
-  → No:  Google Company Website → Extract Company URL → Has URL Now? → ...
+  → No:  Google Company Website (DuckDuckGo, waitFor:3s) → Extract Company URL → Has URL Now? → ...
 Screenshot branch: Has Screenshot? → Prepare Screenshot Binary → Download PNG → Upload to Drive → Set PDF URL
 ```
 
