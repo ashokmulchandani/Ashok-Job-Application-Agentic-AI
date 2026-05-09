@@ -8,8 +8,8 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        11024,
-        8992
+        9808,
+        16672
       ]
     },
     {
@@ -19,10 +19,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        11920,
-        8816
+        11568,
+        16192
       ],
-      "id": "acd9c57b-5a00-476f-bcc3-d3d30fd2465f",
+      "id": "82d5748d-7c4f-4ef2-a973-491a2713b492",
       "name": "Filter Enriched Only"
     },
     {
@@ -40,13 +40,13 @@
         },
         "options": {}
       },
-      "id": "24a361f6-63a4-4b21-a354-2754285fdc96",
+      "id": "10f883bf-df75-4834-b71d-9004b8e806bb",
       "name": "Read Enriched Jobs",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        11392,
-        8640
+        11040,
+        16016
       ],
       "credentials": {
         "googleApi": {
@@ -70,13 +70,13 @@
         },
         "options": {}
       },
-      "id": "9eb7aa0e-6092-4596-98ff-3baa70c7dff9",
+      "id": "8cf3011d-ab92-431e-b92b-abb8a861b407",
       "name": "Read Master Resume",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        11696,
-        8592
+        11344,
+        15968
       ],
       "credentials": {
         "googleApi": {
@@ -89,13 +89,13 @@
       "parameters": {
         "jsCode": "const job = $('Filter Enriched Only').item.json;\nconst allRows = $('Read Master Resume').all().map(i => i.json);\n\n// Get full data from Supabase\nlet supabaseData = {};\ntry {\n  const supaResult = $('Fetch from Supabase').item.json;\n  // Supabase returns array, get first item\n  const record = Array.isArray(supaResult) ? supaResult[0] : supaResult;\n  if (record && record.metadata) {\n    supabaseData = typeof record.metadata === 'string' ? JSON.parse(record.metadata) : record.metadata;\n  }\n} catch(e) {}\n\n// Use Supabase description if available, fallback to Sheet\nconst description = supabaseData.description || job.description || '';\n\n// Use Supabase company_research if available, fallback to Sheet\nlet companyResearch = supabaseData.company_research || job.company_research || '';\nif (typeof companyResearch === 'string' && companyResearch.startsWith('{')) {\n  try { companyResearch = JSON.parse(companyResearch); } catch(e) {}\n}\n\n// Build master resume\nconst resumeRows = allRows.filter(r => r.section && r.section.trim());\nconst seen = new Set();\nconst uniqueRows = resumeRows.filter(r => {\n  const key = r.section.trim();\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\nconst skipSections = new Set(['role_to_resume_mapping']);\nconst masterResume = uniqueRows\n  .filter(r => !skipSections.has(r.section) && (r.content || '').trim())\n  .map(r => (r.section || '').toUpperCase() + ':\\n' + (r.content || ''))\n  .join('\\n\\n');\n\nif (masterResume.length < 100) throw new Error('Resume content too short.');\n\nreturn [{ json: {\n  ...job,\n  description: description,\n  company_research: companyResearch,\n  master_resume: masterResume.slice(0, 15000),\n  selected_resume_type: 'unified'\n} }];\n"
       },
-      "id": "76c4d5ee-85ba-47ac-a545-4da63c6c107e",
+      "id": "5a62acc0-ab04-4c50-a2e1-559efb639c98",
       "name": "Prepare Fit Input",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        12128,
-        8544
+        11776,
+        15920
       ]
     },
     {
@@ -109,13 +109,13 @@
         "jsonBody": "={{ $json.body_string }}",
         "options": {}
       },
-      "id": "7a9a47ca-2b59-467d-b65b-51ac47ef092e",
+      "id": "b83981f5-42d4-4bdf-9dcf-1ea38ac9f8c9",
       "name": "Azure OpenAI Fit Score",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        12368,
-        8544
+        12016,
+        15920
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -128,13 +128,13 @@
       "parameters": {
         "jsCode": "const job = $('Prepare Fit Input').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet fit;\ntry { fit = JSON.parse(raw); } catch (e) { fit = { fit_score: 0, decision: 'needs_review', parse_error: true }; }\nreturn [{ json: { ...job, fit } }];"
       },
-      "id": "3ed27e24-8431-4d23-83eb-50b6f2bb9bd6",
+      "id": "140c812e-b4b6-4c38-9900-5f92c5719002",
       "name": "Parse Fit Score",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        12608,
-        8544
+        12256,
+        15920
       ]
     },
     {
@@ -157,13 +157,13 @@
         },
         "options": {}
       },
-      "id": "fac09189-d68b-48e5-9561-88fa0ef00e1c",
+      "id": "242105ac-5986-4540-a388-8e3d40d6491a",
       "name": "Score >= 80?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        12848,
-        8544
+        12496,
+        15920
       ]
     },
     {
@@ -177,13 +177,13 @@
         "jsonBody": "={{ $json.body_string }}",
         "options": {}
       },
-      "id": "6f5dac2a-c549-452a-a47b-c5477e0ab085",
+      "id": "65a9dc3b-7a1e-45f5-b585-0a18633e0b54",
       "name": "Azure OpenAI Generate Resume",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        13088,
-        8464
+        12736,
+        15840
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -196,13 +196,13 @@
       "parameters": {
         "jsCode": "const job = $('Parse Fit Score').item.json;\nconst raw = $json.choices?.[0]?.message?.content || '{}';\nlet resume;\ntry { resume = JSON.parse(raw); } catch (e) { resume = { parse_error: true, document_title: `Resume - ${job.title} - ${job.company_name}` }; }\nreturn [{ json: {\n  ...job,\n  resume_markdown: resume.resume_markdown || '',\n  resume_html: resume.resume_html || '',\n  tailoring_rationale: resume.tailoring_rationale || '',\n  status: 'needs_review',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
       },
-      "id": "d8a613eb-a758-4840-a086-217c71a00089",
+      "id": "aa9b513b-bbff-41ae-8372-30d2fcdd8272",
       "name": "Parse Resume",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        13328,
-        8464
+        12976,
+        15840
       ]
     },
     {
@@ -238,10 +238,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        13776,
-        8368
+        13424,
+        15744
       ],
-      "id": "182db095-37cd-4501-98cc-40fa5d65e695",
+      "id": "65c46d7c-f0d7-4251-a616-2dbe9a08c905",
       "name": "Upsert Resume to Supabase",
       "onError": "continueErrorOutput"
     },
@@ -252,23 +252,23 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        13664,
-        8816
+        13312,
+        16192
       ],
-      "id": "8299ee9d-c41c-426d-b45d-a200b7fb44ca",
+      "id": "4ed6694c-1f97-4168-8c8c-f5ce8fc835b7",
       "name": "Restore Job Data"
     },
     {
       "parameters": {
         "jsCode": "const job = $json;\nreturn [{ json: {\n  job_id: job.job_id,\n  status: job.fit.fit_score >= 65 ? 'needs_review' : 'rejected',\n  fit_score: job.fit.fit_score,\n  fit_decision: job.fit.decision,\n  fit_rationale: job.fit.rationale || '',\n  matched_requirements: (job.fit.matched_requirements || []).join(', '),\n  missing_requirements: (job.fit.missing_requirements || []).join(', '),\n  updated_at: new Date().toISOString()\n} }];"
       },
-      "id": "907efb1c-bcbd-4cf9-8bb4-93c6262b59f6",
+      "id": "36988ebc-47dc-4f8f-8156-2b56b01eadd4",
       "name": "Score < 80 - No Resume",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        13088,
-        8672
+        12736,
+        16048
       ]
     },
     {
@@ -712,13 +712,13 @@
         },
         "options": {}
       },
-      "id": "1e18db48-7b5c-46da-8700-2211d0d7cb17",
+      "id": "fbab1013-27cb-43eb-8d5d-fca2bd265c23",
       "name": "Update Google Sheets",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        13968,
-        8608
+        13616,
+        15984
       ],
       "credentials": {
         "googleApi": {
@@ -734,10 +734,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        11920,
-        9152
+        11568,
+        16528
       ],
-      "id": "cd9e6e98-13bd-479b-bff0-77b2c41d97b2",
+      "id": "54462e5b-a36f-4106-8f36-d0b13d3dc56f",
       "name": "Prepare Fit Request",
       "onError": "continueErrorOutput"
     },
@@ -748,10 +748,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        12640,
-        9072
+        12288,
+        16448
       ],
-      "id": "78e70ecf-7d09-417c-8c13-8a3bdb937874",
+      "id": "a44b55dd-dda4-4d83-aa1d-64e4823179f2",
       "name": "Prepare Resume Request",
       "onError": "continueErrorOutput"
     },
@@ -776,10 +776,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        10400,
-        7600
+        10048,
+        14976
       ],
-      "id": "8c319bbe-5ac0-4a33-8f1f-0e194113e92b",
+      "id": "0b8dbf7d-7473-4747-af6b-6f9d606ceb26",
       "name": "Fetch from Supabase",
       "onError": "continueErrorOutput"
     }
@@ -986,7 +986,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "52917404-a2ca-4ae1-9ffd-b6ca9436eb41",
+  "versionId": "e734e85d-613d-434a-8c1c-ff21e5f5e3b9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "173b8a4569ad20652b77d367a41b875becb1783402651413873b07ab973a7fb1"
