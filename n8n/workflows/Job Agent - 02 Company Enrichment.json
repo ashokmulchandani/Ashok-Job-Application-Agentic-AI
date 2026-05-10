@@ -1508,7 +1508,7 @@
       "main": [
         [
           {
-            "node": "Fetch Sitemap",
+            "node": "Pick Top Pages",
             "type": "main",
             "index": 0
           }
