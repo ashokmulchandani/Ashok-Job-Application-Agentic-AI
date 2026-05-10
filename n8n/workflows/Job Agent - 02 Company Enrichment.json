@@ -1465,6 +1465,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Parse Robots Sitemap",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -1481,6 +1488,13 @@
     },
     "Fetch Sitemap XML": {
       "main": [
+        [
+          {
+            "node": "Merge Sitemap + Map URLs",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Merge Sitemap + Map URLs",
