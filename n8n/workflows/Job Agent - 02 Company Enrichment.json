@@ -881,7 +881,8 @@
           "id": "jjUOHftcBqLwwjjm",
           "name": "Azure OpenAI API Key-03May26"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -1404,6 +1405,13 @@
     },
     "Generate Embedding": {
       "main": [
+        [
+          {
+            "node": "Upsert to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Upsert to Supabase",
