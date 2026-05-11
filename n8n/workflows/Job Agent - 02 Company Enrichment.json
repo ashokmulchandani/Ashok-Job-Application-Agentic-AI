@@ -911,7 +911,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ p_job_id: $(\"Prepare Vector Data\").item.json.job_id, p_title: $(\"Prepare Vector Data\").item.json.title, p_company_name: $(\"Prepare Vector Data\").item.json.company_name, p_location: $(\"Prepare Vector Data\").item.json.location, p_industry: $(\"Prepare Vector Data\").item.json.industry, p_status: $(\"Prepare Vector Data\").item.json.status, p_fit_score: $(\"Prepare Vector Data\").item.json.fit_score, p_content: $(\"Prepare Vector Data\").item.json.content, p_metadata: $(\"Prepare Vector Data\").item.json.metadata, p_embedding: $json.data[0].embedding }) }}",
+        "jsonBody": "={{ JSON.stringify({ p_job_id: $(\"Prepare Vector Data\").item.json.job_id, p_title: $(\"Prepare Vector Data\").item.json.title, p_company_name: $(\"Prepare Vector Data\").item.json.company_name, p_location: $(\"Prepare Vector Data\").item.json.location, p_industry: $(\"Prepare Vector Data\").item.json.industry, p_status: $(\"Prepare Vector Data\").item.json.status, p_fit_score: $(\"Prepare Vector Data\").item.json.fit_score, p_content: $(\"Prepare Vector Data\").item.json.content, p_metadata: $(\"Prepare Vector Data\").item.json.metadata, p_embedding: ($json.data && $json.data[0] && $json.data[0].embedding) || null }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
